@@ -30,8 +30,7 @@
         // 1. CONFIGURAÇÃO DO SUPABASE (Substitua pelos seus dados)
         const SUPABASE_URL = 'https://fumbnqnjhreauxtnrufv.supabase.co';
         const SUPABASE_KEY = 'sb_secret_R8vzt2rPLdGPq6ttS0ZhEw_zkMv6WVs';
-        const supabase = supabase.createClient(https://fumbnqnjhreauxtnrufv.supabase.co, sb_secret_R8vzt2rPLdGPq6ttS0ZhEw_zkMv6WVs);
-
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         async function carregarVideos() {
             // 2. BUSCAR DADOS DA TABELA 'videos'
             const { data, error } = await supabase
@@ -79,3 +78,4 @@
 </body>
 
 </html>
+
