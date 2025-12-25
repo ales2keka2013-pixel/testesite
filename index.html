@@ -3,80 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Achadinhos Vips | Feed Dinâmico</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>Achadinhos | Feed via Planilha</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
     <style>
-        /* [O CSS permanece o mesmo que enviamos anteriormente] */
+        /* [O CSS permanece o mesmo estilo TikTok que já criamos] */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { height: 100%; overflow: hidden; background-color: #000; font-family: 'Segoe UI', sans-serif; color: white; }
+        body, html { height: 100%; overflow: hidden; background-color: #000; font-family: sans-serif; color: white; }
         .app-container { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
-        .video-card { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; background: #000; }
+        .video-card { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px; z-index: 10; background: linear-gradient(transparent, rgba(0,0,0,0.8)); }
-        .side-bar { position: absolute; right: 15px; bottom: 150px; display: flex; flex-direction: column; gap: 20px; z-index: 11; }
-        .btn-shop { display: block; background: #FE2C55; color: white; text-align: center; padding: 12px; border-radius: 25px; text-decoration: none; font-weight: bold; width: 80%; margin: 10px auto 70px; }
-        .loading { display: flex; justify-content: center; align-items: center; height: 100vh; font-size: 20px; }
+        .overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 10; }
+        .btn-shop { display: block; background: #FE2C55; color: white; text-align: center; padding: 15px; border-radius: 30px; text-decoration: none; font-weight: bold; width: 80%; margin: 10px auto 80px; }
+        .loading { display: flex; justify-content: center; align-items: center; height: 100vh; }
     </style>
 </head>
 <body>
 
-    <div id="loading" class="loading">jessica peidou...</div>
-    <div class="app-container" id="appContainer" style="display: none;">
-        </div>
+    <div id="loading" class="loading">Carregando ofertas...</div>
+    <div class="app-container" id="appContainer" style="display: none;"></div>
 
     <script>
-        // 1. CONFIGURAÇÃO DO SUPABASE (Substitua pelos seus dados)
-        const SUPABASE_URL = 'https://fumbnqnjhreauxtnrufv.supabase.co';
-        const SUPABASE_KEY = 'sb_secret_R8vzt2rPLdGPq6ttS0ZhEw_zkMv6WVs';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        async function carregarVideos() {
-            // 2. BUSCAR DADOS DA TABELA 'videos'
-            const { data, error } = await supabase
-                .from('videos')
-                .select('*')
-                .order('created_at', { ascending: false });
+        // COLE AQUI O LINK QUE O SHEETDB GEROU
+        const API_URL = 'SUA_URL_DO_SHEETDB_AQUI';
 
-            if (error) {
-                console.error('Erro ao carregar:', error);
-                return;
+        async function carregarDados() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+
+                const container = document.getElementById('appContainer');
+                const loading = document.getElementById('loading');
+
+                data.forEach((item) => {
+                    const section = document.createElement('section');
+                    section.className = 'video-card';
+                    section.innerHTML = `
+                        <video loop playsinline src="${item.video_url}" onclick="this.paused ? this.play() : this.pause()"></video>
+                        <div class="overlay">
+                            <div style="font-weight:bold; margin-bottom:5px;">@${item.username}</div>
+                            <div style="font-size:14px; margin-bottom:15px;">${item.description}</div>
+                            <a href="${item.affiliate_url}" target="_blank" class="btn-shop">🛍️ Ver Produto</a>
+                        </div>
+                    `;
+                    container.appendChild(section);
+                });
+
+                loading.style.display = 'none';
+                container.style.display = 'block';
+                
+                // Toca o primeiro vídeo
+                container.querySelector('video').play();
+
+            } catch (error) {
+                console.error('Erro ao carregar planilha:', error);
+                document.getElementById('loading').innerText = 'Erro ao carregar dados.';
             }
-
-            const container = document.getElementById('appContainer');
-            const loading = document.getElementById('loading');
-
-            // 3. CRIAR OS CARDS DE VÍDEO DINAMICAMENTE
-            data.forEach((item) => {
-                const section = document.createElement('section');
-                section.className = 'video-card';
-                section.innerHTML = `
-                    <video loop playsinline onclick="this.paused ? this.play() : this.pause()" src="${item.video_url}"></video>
-                    <div class="side-bar">
-                        <div class="action-item"><i class="fas fa-heart"></i><span>1.2k</span></div>
-                        <div class="action-item" onclick="alert('Link do produto copiado!')"><i class="fas fa-share"></i></div>
-                    </div>
-                    <div class="overlay">
-                        <div class="username">@${item.username}</div>
-                        <div class="description">${item.description}</div>
-                        <a href="${item.affiliate_url}" target="_blank" class="btn-shop">🛍️ Ir para a Loja</a>
-                    </div>
-                `;
-                container.appendChild(section);
-            });
-
-            loading.style.display = 'none';
-            container.style.display = 'block';
-            
-            // Tocar o primeiro vídeo automaticamente
-            const primeiroVideo = container.querySelector('video');
-            if(primeiroVideo) primeiroVideo.play();
         }
 
-        carregarVideos();
+        carregarDados();
     </script>
 </body>
-
 </html>
-
-
