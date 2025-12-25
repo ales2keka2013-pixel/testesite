@@ -6,24 +6,24 @@
     <title>Achadinhos Vips</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { height: 100%; background-color: #000; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; overflow: hidden; display: flex; justify-content: center; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body, html { height: 100%; background-color: #000; font-family: sans-serif; overflow: hidden; display: flex; justify-content: center; }
         
         .app-container { height: 100vh; width: 100%; max-width: 500px; overflow-y: scroll; scroll-snap-type: y mandatory; position: relative; }
         .app-container::-webkit-scrollbar { display: none; }
 
-        /* Cabeçalho Blindado contra Descentralização */
+        /* HEADER TOTALMENTE TRAVADO */
         .header-tools { 
             position: fixed; 
             top: 0; 
             width: 100%; 
             max-width: 500px; 
             z-index: 100; 
-            padding: 15px 5px; 
-            background: linear-gradient(rgba(0,0,0,0.85), transparent);
+            padding: 15px 0; /* Removido padding lateral para não empurrar */
+            background: linear-gradient(rgba(0,0,0,0.9), transparent);
             display: flex;
             flex-direction: column;
-            align-items: center; 
+            align-items: center;
         }
 
         .search-bar { 
@@ -31,35 +31,35 @@
             padding: 10px; 
             border-radius: 20px; 
             border: 1px solid rgba(255,255,255,0.1); 
-            background: rgba(255,255,255,0.15); 
-            backdrop-filter: blur(15px); 
+            background: rgba(255,255,255,0.2); 
             color: white; 
             outline: none; 
             margin-bottom: 12px;
             text-align: center;
-            font-size: 14px;
         }
         
+        /* Container de botões sem scroll e centralizado */
         .filter-group { 
             display: flex; 
-            gap: 5px; 
-            width: 100%;
-            justify-content: center; /* Centralização Absoluta */
-            flex-wrap: nowrap;
-            overflow: hidden; /* Proíbe o menu de "correr" para o lado */
+            width: 95%; /* Ocupa quase tudo, mas com margem */
+            justify-content: space-between; /* Distribui os botões igualmente */
+            align-items: center;
+            overflow: hidden; /* BLOQUEIA qualquer movimento lateral */
         }
 
         .filter-btn { 
-            padding: 8px 10px; 
+            flex: 1; /* Faz todos os botões terem o mesmo tamanho */
+            margin: 0 3px;
+            padding: 8px 0; 
             background: rgba(255,255,255,0.1); 
             border: 1px solid rgba(255,255,255,0.2); 
-            border-radius: 18px; 
+            border-radius: 15px; 
             color: white; 
-            font-size: 10px; /* Reduzido levemente para caber tudo */
+            font-size: 10px; 
             white-space: nowrap; 
             cursor: pointer;
-            min-width: 70px;
             text-align: center;
+            transition: background 0.3s;
         }
         .filter-btn.active { background: #FE2C55; border-color: #FE2C55; font-weight: bold; }
 
@@ -84,23 +84,18 @@
             z-index: 20; 
             text-transform: uppercase;
             box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-            font-size: 14px;
         }
 
-        .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; z-index: 200;}
-        .reload-btn { margin-top: 15px; padding: 10px 20px; border-radius: 20px; border: none; background: #FE2C55; color: white; font-weight: bold;}
+        .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div id="loading" class="loading">
-        <p>Sincronizando Achadinhos...</p>
-        <button class="reload-btn" onclick="location.reload()">Recarregar</button>
-    </div>
+    <div id="loading" class="loading">Sincronizando...</div>
 
     <div class="app-container" id="appContainer" style="display: none;">
         <div class="header-tools">
-            <input type="text" class="search-bar" id="searchInput" placeholder="Buscar produto ou loja..." oninput="filtrar()">
+            <input type="text" class="search-bar" id="searchInput" placeholder="O que você busca?" oninput="filtrar()">
             <div class="filter-group">
                 <button class="filter-btn active" onclick="setFilter('all', this)">Todos</button>
                 <button class="filter-btn" onclick="setFilter('Shopee', this)">Shopee</button>
@@ -124,7 +119,7 @@
 
                 for (let i = 1; i < lines.length; i++) {
                     const col = lines[i].split('\t');
-                    if (!col[0] || col[0].trim() === "") continue;
+                    if (!col[0]) continue;
 
                     let vUrl = col[0].trim().replace(/"/g, "");
                     if(vUrl.includes("dropbox.com")) {
@@ -143,7 +138,7 @@
                     section.innerHTML = `
                         ${isImage ? `<img src="${vUrl}">` : `<video loop playsinline muted src="${vUrl}" onclick="this.muted=!this.muted; this.play();"></video>`}
                         <div class="overlay">
-                            <div style="font-weight:bold; font-size:16px; color:#fff;">@${col[2] || 'achadinhos'} ${store ? '• '+store : ''}</div>
+                            <div style="font-weight:bold; font-size:16px;">@${col[2] || 'achadinhos'} ${store ? '• '+store : ''}</div>
                             <div style="font-size:13px; margin-top:5px; color:#efefef;">${desc}</div>
                         </div>
                         <a href="${col[1] || '#'}" target="_blank" class="btn-shop">🛍️ IR À LOJA</a>
@@ -153,11 +148,7 @@
 
                 document.getElementById('loading').style.display = 'none';
                 container.style.display = 'block';
-                setTimeout(() => { container.querySelector('video')?.play().catch(()=>{}); }, 500);
-
-            } catch (e) {
-                document.getElementById('loading').innerHTML = "<p>Erro na conexão.</p><button class='reload-btn' onclick='location.reload()'>Tentar Novamente</button>";
-            }
+            } catch (e) { console.error(e); }
         }
 
         function setFilter(store, btn) {
@@ -173,7 +164,6 @@
                 const matchesStore = currentFilter === 'all' || card.dataset.store === currentFilter;
                 const matchesSearch = card.dataset.desc.includes(search) || card.dataset.store.includes(search);
                 card.style.display = (matchesStore && matchesSearch) ? 'flex' : 'none';
-                if (card.style.display === 'none') card.querySelector('video')?.pause();
             });
             document.getElementById('appContainer').scrollTop = 0;
         }
