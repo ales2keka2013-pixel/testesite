@@ -62,4 +62,116 @@
     </div>
 
     <script>
-        const SHEET_ID = '18
+        const SHEET_ID = '1817zpM3JYfKchLtHPOauozCcsVhDieTSs3QG5-5ZAVU';
+        const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=tsv&gid=0&cache=${Date.now()}`;
+        let globalMuted = true;
+
+        async function carregar() {
+            try {
+                const res = await fetch(URL);
+                const tsv = await res.text();
+                const lines = tsv.split('\n');
+                const container = document.getElementById('appContainer');
+
+                for (let i = 1; i < lines.length; i++) {
+                    const col = lines[i].split('\t');
+                    if (!col[0] || col[0].trim() === "") continue;
+
+                    let vUrl = col[0].trim().replace(/"/g, "");
+                    if(vUrl.includes("dropbox.com")) vUrl = vUrl.replace("www.dropbox.com", "dl.dropboxusercontent.com").split('?')[0] + "?raw=1";
+
+                    const store = (col[4] || "").trim();
+                    const desc = (col[3] || "").trim();
+                    const shopLink = (col[1] || "#").trim();
+                    const isImage = vUrl.match(/\.(jpg|jpeg|png|webp|gif)$/i);
+
+                    const section = document.createElement('section');
+                    section.className = 'video-card';
+                    section.dataset.store = store.toLowerCase();
+                    section.dataset.desc = desc.toLowerCase();
+
+                    section.innerHTML = `
+                        ${isImage ? `<img src="${vUrl}">` : `
+                            <video loop playsinline muted src="${vUrl}" onclick="toggleGlobalMute()"></video>
+                            <div class="mute-toggle" onclick="toggleGlobalMute()">
+                                <i class="fas fa-volume-mute"></i>
+                            </div>
+                        `}
+                        <div class="side-actions">
+                            <button class="action-btn" onclick="this.querySelector('i').classList.toggle('active')">
+                                <i class="fas fa-heart"></i><span>Amei</span>
+                            </button>
+                            <button class="action-btn" onclick="compartilhar('${desc}')">
+                                <i class="fas fa-share"></i><span>Enviar</span>
+                            </button>
+                        </div>
+                        <div class="overlay">
+                            <div style="font-weight:bold; font-size:16px;">@${col[2] || 'achadinhos'} ${store ? '• '+store : ''}</div>
+                            <div style="font-size:13px; margin-top:5px; color:#efefef;">${desc}</div>
+                        </div>
+                        <a href="${shopLink}" target="_blank" class="btn-shop">🛍️ IR À LOJA</a>
+                    `;
+                    container.appendChild(section);
+                }
+
+                document.getElementById('loading').style.display = 'none';
+                container.style.display = 'block';
+                playVisibleVideos();
+            } catch (e) { console.error(e); }
+        }
+
+        // Função para ativar/desativar som em todos os vídeos
+        function toggleGlobalMute() {
+            globalMuted = !globalMuted;
+            const videos = document.querySelectorAll('video');
+            const icons = document.querySelectorAll('.mute-toggle i');
+
+            videos.forEach(v => { v.muted = globalMuted; });
+            icons.forEach(icon => {
+                icon.className = globalMuted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+            });
+        }
+
+        function playVisibleVideos() {
+            document.querySelectorAll('video').forEach(v => {
+                const rect = v.getBoundingClientRect();
+                if (rect.top >= -200 && rect.top <= 200) {
+                    v.play().catch(() => {});
+                } else {
+                    v.pause();
+                }
+            });
+        }
+
+        function compartilhar(texto) {
+            if (navigator.share) navigator.share({ title: 'Achadinho!', text: texto, url: window.location.href });
+        }
+
+        function setFilter(store, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const search = store.toLowerCase();
+            document.querySelectorAll('.video-card').forEach(card => {
+                card.style.display = (search === 'all' || card.dataset.store === search) ? 'flex' : 'none';
+            });
+            document.getElementById('appContainer').scrollTop = 0;
+            setTimeout(playVisibleVideos, 150);
+        }
+
+        function filtrar() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('.video-card').forEach(card => {
+                card.style.display = (card.dataset.desc.includes(search) || card.dataset.store.includes(search)) ? 'flex' : 'none';
+            });
+            setTimeout(playVisibleVideos, 150);
+        }
+
+        document.getElementById('appContainer').addEventListener('scroll', () => {
+            clearTimeout(window.scrollTimeout);
+            window.scrollTimeout = setTimeout(playVisibleVideos, 100);
+        });
+
+        carregar();
+    </script>
+</body>
+</html>
