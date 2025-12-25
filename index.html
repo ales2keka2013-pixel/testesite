@@ -8,58 +8,60 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { height: 100%; background-color: #000; font-family: sans-serif; overflow: hidden; display: flex; justify-content: center; }
-        .app-container { height: 100vh; width: 100%; max-width: 500px; overflow-y: scroll; scroll-snap-type: y mandatory; position: relative; }
+        .app-container { height: 100vh; width: 100%; max-width: 500px; overflow-y: scroll; scroll-snap-type: y mandatory; position: relative; scroll-behavior: smooth; }
         .app-container::-webkit-scrollbar { display: none; }
-        .video-card { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
-        video { width: 100%; height: 100%; object-fit: cover; }
-        .overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px 20px 110px 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 10; pointer-events: none; }
+        .video-card { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; background: #000; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #111; }
+        video { width: 100%; height: 100%; object-fit: cover; background: #000; }
+        .overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px 20px 115px 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 10; pointer-events: none; }
         .side-bar { position: absolute; right: 15px; bottom: 180px; display: flex; flex-direction: column; gap: 20px; z-index: 15; }
         .action-btn { display: flex; flex-direction: column; align-items: center; color: white; text-shadow: 1px 1px 5px rgba(0,0,0,0.5); font-size: 12px; }
         .action-btn i { font-size: 32px; cursor: pointer; margin-bottom: 5px; }
-        .btn-shop { position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%); background: #FE2C55; color: white; text-align: center; padding: 14px; border-radius: 8px; text-decoration: none; font-weight: bold; width: 90%; z-index: 20; text-transform: uppercase; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: #000; color: white; z-index: 100; }
+        .btn-shop { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: #FE2C55; color: white; text-align: center; padding: 15px; border-radius: 10px; text-decoration: none; font-weight: bold; width: 90%; z-index: 20; text-transform: uppercase; letter-spacing: 1px; }
+        .loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000; color: white; z-index: 100; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #FE2C55; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div id="loading" class="loading">Sincronizando Achadinhos...</div>
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Buscando Achadinhos...</p>
+    </div>
     <div class="app-container" id="appContainer" style="display: none;"></div>
 
     <script>
         const SHEET_ID = '1817zpM3JYfKchLtHPOauozCcsVhDieTSs3QG5-5ZAVU';
-        // Usando o formato TSV (Tab separated) para evitar erros com vírgulas no texto
-        const TSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=tsv&gid=0`;
+        // URL de exportação direta do Google
+        const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
         async function carregar() {
             try {
-                // Adicionamos um número aleatório ao final da URL para "enganar" o cache e forçar atualização
-                const res = await fetch(`${TSV_URL}&nocache=${Math.random()}`);
-                const tsvText = await res.text();
-                
-                const rows = tsvText.split('\n').slice(1); 
+                const res = await fetch(SHEET_URL);
+                const text = await res.text();
+                // Limpeza rigorosa do JSON do Google
+                const json = JSON.parse(text.substring(47, text.length - 2));
+                const rows = json.table.rows;
                 const container = document.getElementById('appContainer');
-                container.innerHTML = ''; // Limpa antes de carregar
 
-                rows.forEach(row => {
-                    const columns = row.split('\t'); // Divide por TAB
-                    if (columns.length < 2) return;
+                rows.forEach((row, index) => {
+                    // Extrai dados das colunas A, B, C, D
+                    let vUrl = row.c[0]?.v || "";
+                    let sLink = row.c[1]?.v || "#";
+                    let user = row.c[2]?.v || "achadinhos";
+                    let desc = row.c[3]?.v || "";
 
-                    let videoUrl = columns[0]?.trim();
-                    const shopLink = columns[1]?.trim() || "#";
-                    const user = columns[2]?.trim() || "achadinhos";
-                    const desc = columns[3]?.trim() || "";
+                    // Filtro: Se não tiver link de vídeo ou for imagem, ignora
+                    if (!vUrl || typeof vUrl !== 'string' || vUrl.match(/\.(jpg|jpeg|png|gif)$/i)) return;
 
-                    // Corretor de links Dropbox
-                    if(videoUrl.includes("dropbox.com")) {
-                        videoUrl = videoUrl.replace("dl=0", "raw=1").replace("www.dropbox.com", "dl.dropboxusercontent.com");
+                    // Corretor Universal para Dropbox
+                    if(vUrl.includes("dropbox.com")) {
+                        vUrl = vUrl.replace("www.dropbox.com", "dl.dropboxusercontent.com").replace("dl=0", "raw=1");
                     }
-                    
-                    // Só adiciona se tiver link de vídeo e não for imagem
-                    if (!videoUrl || videoUrl.toLowerCase().includes(".jpg") || videoUrl.toLowerCase().includes(".png")) return;
 
                     const section = document.createElement('section');
                     section.className = 'video-card';
                     section.innerHTML = `
-                        <video loop playsinline src="${videoUrl}" onclick="this.paused ? this.play() : this.pause()"></video>
+                        <video loop playsinline src="${vUrl}" poster="" onclick="this.paused ? this.play() : this.pause()"></video>
                         <div class="side-bar">
                             <div class="action-btn" onclick="this.querySelector('i').style.color='#FE2C55'"><i class="fas fa-heart"></i><span>Amei</span></div>
                             <div class="action-btn" onclick="alert('Link copiado!')"><i class="fas fa-share"></i><span>Enviar</span></div>
@@ -68,7 +70,7 @@
                             <div style="font-weight:bold; font-size:18px;">@${user}</div>
                             <div style="font-size:14px; margin-top:5px;">${desc}</div>
                         </div>
-                        <a href="${shopLink}" target="_blank" class="btn-shop">🛍️ COMPRAR AGORA</a>
+                        <a href="${sLink}" target="_blank" class="btn-shop">🛍️ COMPRAR AGORA</a>
                     `;
                     container.appendChild(section);
                 });
@@ -76,23 +78,28 @@
                 document.getElementById('loading').style.display = 'none';
                 container.style.display = 'block';
                 
-                // Play automático no primeiro vídeo (precisa de clique do usuário na tela as vezes)
-                container.querySelector('video')?.play().catch(() => {});
+                // Tenta iniciar o primeiro vídeo
+                setTimeout(() => {
+                    const firstVid = container.querySelector('video');
+                    if(firstVid) firstVid.play().catch(() => console.log("Clique necessário para som/auto-play"));
+                }, 500);
 
             } catch (e) {
-                console.error(e);
-                document.getElementById('loading').innerText = "Erro ao carregar dados.";
+                console.error("Erro Geral:", e);
+                document.getElementById('loading').innerHTML = "<p>Erro ao sincronizar.<br>Verifique se a planilha está PÚBLICA.</p>";
             }
         }
 
-        // Lógica de scroll para play/pause
+        // Sistema de reprodução inteligente
         document.getElementById('appContainer').addEventListener('scroll', () => {
             const vids = document.querySelectorAll('video');
             vids.forEach(v => {
                 const rect = v.getBoundingClientRect();
-                // Se o vídeo está centralizado na tela
-                if (rect.top >= -100 && rect.top <= 100) v.play().catch(()=>{});
-                else v.pause();
+                if (rect.top >= -window.innerHeight/2 && rect.top <= window.innerHeight/2) {
+                    if(v.paused) v.play().catch(()=>{});
+                } else {
+                    v.pause();
+                }
             });
         });
 
