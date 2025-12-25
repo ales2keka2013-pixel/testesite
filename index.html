@@ -8,114 +8,58 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { height: 100%; background-color: #000; font-family: sans-serif; overflow: hidden; display: flex; justify-content: center; }
-        .app-container { height: 100vh; width: 100%; max-width: 500px; overflow-y: scroll; scroll-snap-type: y mandatory; position: relative; background: #000; }
+        
+        /* Container Principal */
+        .app-container { height: 100vh; width: 100%; max-width: 500px; overflow-y: scroll; scroll-snap-type: y mandatory; position: relative; background: #000; display: none; }
         .app-container::-webkit-scrollbar { display: none; }
 
+        /* Menu Fixo */
         .header-tools { 
             position: fixed; top: 0; width: 100%; max-width: 500px; z-index: 100; padding: 15px 0; 
             background: linear-gradient(rgba(0,0,0,0.9), transparent); display: flex; flex-direction: column; align-items: center;
         }
         .search-bar { width: 90%; padding: 10px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.2); color: white; outline: none; margin-bottom: 12px; text-align: center; }
-        .filter-group { display: flex; width: 95%; justify-content: space-between; align-items: center; }
-        .filter-btn { flex: 1; margin: 0 3px; padding: 8px 0; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; color: white; font-size: 10px; cursor: pointer; text-align: center; }
+        .filter-group { display: flex; width: 95%; justify-content: center; align-items: center; gap: 5px; }
+        .filter-btn { flex: 1; padding: 8px 0; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; color: white; font-size: 10px; cursor: pointer; text-align: center; }
         .filter-btn.active { background: #FE2C55; border-color: #FE2C55; font-weight: bold; }
 
+        /* Cards de Vídeo */
         .video-card { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; background: #000; }
         video, img { width: 100%; height: 100%; object-fit: contain; }
 
-        .mute-toggle {
-            position: absolute; top: 120px; right: 20px; z-index: 50; background: rgba(0,0,0,0.5);
-            color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center;
-            justify-content: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.2);
-        }
+        /* Botão de Som */
+        .mute-toggle { position: absolute; top: 125px; right: 20px; z-index: 50; background: rgba(0,0,0,0.5); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
 
+        /* Ações Laterais */
         .side-actions { position: absolute; right: 15px; bottom: 180px; display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 30; }
-        .action-btn { background: none; border: none; color: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; font-size: 11px; }
-        .action-btn i { font-size: 30px; margin-bottom: 5px; }
+        .action-btn { background: none; border: none; color: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; font-size: 11px; text-shadow: 1px 1px 2px #000; }
+        .action-btn i { font-size: 28px; margin-bottom: 5px; }
         .action-btn i.active { color: #FE2C55; }
 
+        /* Texto sobre o Vídeo */
         .overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px 20px 180px 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 10; pointer-events: none; }
-        
-        /* Ajuste na exibição da Loja e Descrição */
-        .store-tag { background: #FE2C55; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 5px; display: inline-block; }
-        .product-desc { font-size: 14px; color: #fff; line-height: 1.4; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
+        .store-tag { background: #FE2C55; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 8px; display: inline-block; }
+        .product-desc { font-size: 14px; color: #fff; line-height: 1.4; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
 
-        .btn-shop { position: absolute; bottom: 115px; left: 50%; transform: translateX(-50%); background: #FE2C55; color: white; text-align: center; padding: 16px; border-radius: 50px; text-decoration: none; font-weight: bold; width: 80%; z-index: 20; text-transform: uppercase; box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
+        /* Botão de Compra */
+        .btn-shop { position: absolute; bottom: 110px; left: 50%; transform: translateX(-50%); background: #FE2C55; color: white; text-align: center; padding: 16px; border-radius: 50px; text-decoration: none; font-weight: bold; width: 85%; z-index: 20; text-transform: uppercase; box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
 
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; align-items: center; justify-content: center; color: white; z-index: 200; }
+        /* Tela de Loading */
+        #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 999; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #333; border-top: 4px solid #FE2C55; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <div id="loading"><p>Atualizando achadinhos...</p></div>
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p id="status-text">Sincronizando ofertas...</p>
+    </div>
 
-    <div class="app-container" id="appContainer" style="display: none;">
+    <div class="app-container" id="appContainer">
         <div class="header-tools">
-            <input type="text" class="search-bar" id="searchInput" placeholder="O que você procura?" oninput="filtrar()">
+            <input type="text" class="search-bar" id="searchInput" placeholder="Buscar categoria ou produto..." oninput="filtrar()">
             <div class="filter-group">
                 <button class="filter-btn active" onclick="setFilter('all', this)">Todos</button>
                 <button class="filter-btn" onclick="setFilter('Shopee', this)">Shopee</button>
-                <button class="filter-btn" onclick="setFilter('Amazon', this)">Amazon</button>
-                <button class="filter-btn" onclick="setFilter('Mercado Livre', this)">M. Livre</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const SHEET_ID = '1817zpM3JYfKchLtHPOauozCcsVhDieTSs3QG5-5ZAVU';
-        const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=tsv&gid=0&cache=${Date.now()}`;
-        let globalMuted = true;
-
-        async function carregar() {
-            try {
-                const res = await fetch(URL);
-                const tsv = await res.text();
-                const lines = tsv.split('\n');
-                const container = document.getElementById('appContainer');
-
-                for (let i = 1; i < lines.length; i++) {
-                    const col = lines[i].split('\t');
-                    if (!col[0] || col[0].trim() === "") continue;
-
-                    let vUrl = col[0].trim().replace(/"/g, "");
-                    if(vUrl.includes("dropbox.com")) vUrl = vUrl.replace("www.dropbox.com", "dl.dropboxusercontent.com").split('?')[0] + "?raw=1";
-
-                    const shopLink = (col[1] || "#").trim();
-                    const desc = (col[3] || "").trim();
-                    const store = (col[4] || "").trim();
-                    const category = (col[5] || "").trim();
-                    
-                    const isImage = vUrl.match(/\.(jpg|jpeg|png|webp|gif)$/i);
-
-                    const section = document.createElement('section');
-                    section.className = 'video-card';
-                    section.dataset.store = store.toLowerCase();
-                    section.dataset.desc = desc.toLowerCase();
-                    section.dataset.category = category.toLowerCase();
-
-                    section.innerHTML = `
-                        ${isImage ? `<img src="${vUrl}">` : `
-                            <video loop playsinline muted src="${vUrl}" onclick="toggleGlobalMute()"></video>
-                            <div class="mute-toggle" onclick="toggleGlobalMute()">
-                                <i class="fas fa-volume-mute"></i>
-                            </div>
-                        `}
-                        <div class="side-actions">
-                            <button class="action-btn" onclick="this.querySelector('i').classList.toggle('active')">
-                                <i class="fas fa-heart"></i><span>Amei</span>
-                            </button>
-                            <button class="action-btn" onclick="compartilhar('${desc}')">
-                                <i class="fas fa-share"></i><span>Enviar</span>
-                            </button>
-                        </div>
-                        <div class="overlay">
-                            ${store ? `<span class="store-tag">${store.toUpperCase()}</span>` : ''}
-                            <div class="product-desc">${desc}</div>
-                        </div>
-                        <a href="${shopLink}" target="_blank" class="btn-shop">🛍️ IR À LOJA</a>
-                    `;
-                    container.appendChild(section);
-                }
-
-                document.getElementById('loading').style.display = 'none';
-                container.style.
