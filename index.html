@@ -12,28 +12,89 @@
         .app-container { height: 100vh; width: 100%; max-width: 500px; overflow-y: scroll; scroll-snap-type: y mandatory; position: relative; }
         .app-container::-webkit-scrollbar { display: none; }
 
-        .header-tools { position: fixed; top: 0; width: 100%; max-width: 500px; z-index: 100; padding: 10px; background: linear-gradient(rgba(0,0,0,0.8), transparent); }
-        .search-bar { width: 100%; padding: 12px; border-radius: 25px; border: none; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; outline: none; margin-bottom: 10px; }
+        /* Cabeçalho Centralizado */
+        .header-tools { 
+            position: fixed; 
+            top: 0; 
+            width: 100%; 
+            max-width: 500px; 
+            z-index: 100; 
+            padding: 15px 10px; 
+            background: linear-gradient(rgba(0,0,0,0.8), transparent);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .search-bar { 
+            width: 95%; 
+            padding: 12px; 
+            border-radius: 25px; 
+            border: none; 
+            background: rgba(255,255,255,0.2); 
+            backdrop-filter: blur(10px); 
+            color: white; 
+            outline: none; 
+            margin-bottom: 12px;
+            text-align: center;
+        }
         
-        .filter-group { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; }
-        .filter-btn { padding: 8px 15px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; color: white; font-size: 11px; white-space: nowrap; cursor: pointer; }
-        .filter-btn.active { background: #FE2C55; border-color: #FE2C55; }
+        .filter-group { 
+            display: flex; 
+            gap: 8px; 
+            overflow-x: auto; 
+            width: 100%;
+            justify-content: center; /* Centraliza botões se couberem */
+            padding-bottom: 5px;
+        }
+        /* Se os botões forem muitos, permite rolar mas mantém o início centralizado */
+        .filter-group::-webkit-scrollbar { display: none; }
+
+        .filter-btn { 
+            padding: 8px 16px; 
+            background: rgba(255,255,255,0.1); 
+            border: 1px solid rgba(255,255,255,0.3); 
+            border-radius: 20px; 
+            color: white; 
+            font-size: 11px; 
+            white-space: nowrap; 
+            cursor: pointer; 
+        }
+        .filter-btn.active { background: #FE2C55; border-color: #FE2C55; font-weight: bold; }
 
         .video-card { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
         video, img { width: 100%; height: auto; max-height: 100vh; object-fit: contain; }
 
-        .overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px 20px 120px 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 10; pointer-events: none; }
-        .btn-shop { position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%); background: #FE2C55; color: white; text-align: center; padding: 16px; border-radius: 12px; text-decoration: none; font-weight: bold; width: 90%; z-index: 20; text-transform: uppercase; }
+        .overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px 20px 140px 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 10; pointer-events: none; }
+        
+        /* Botão Subiu um pouco */
+        .btn-shop { 
+            position: absolute; 
+            bottom: 110px; /* Subiu de 85px para 110px */
+            left: 50%; 
+            transform: translateX(-50%); 
+            background: #FE2C55; 
+            color: white; 
+            text-align: center; 
+            padding: 16px; 
+            border-radius: 12px; 
+            text-decoration: none; 
+            font-weight: bold; 
+            width: 85%; 
+            z-index: 20; 
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
 
-        .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; z-index: 200; font-family: sans-serif; }
-        .reload-btn { margin-top: 15px; padding: 10px 20px; border-radius: 20px; border: none; background: #FE2C55; color: white; cursor: pointer; }
+        .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; z-index: 200; }
+        .reload-btn { margin-top: 15px; padding: 10px 20px; border-radius: 20px; border: none; background: #FE2C55; color: white; cursor: pointer; font-weight: bold;}
     </style>
 </head>
 <body>
 
     <div id="loading" class="loading">
         <p>Buscando Achadinhos...</p>
-        <button class="reload-btn" onclick="location.reload()">Recarregar Página</button>
+        <button class="reload-btn" onclick="location.reload()">Recarregar</button>
     </div>
 
     <div class="app-container" id="appContainer" style="display: none;">
@@ -43,7 +104,7 @@
                 <button class="filter-btn active" onclick="setFilter('all', this)">Todos</button>
                 <button class="filter-btn" onclick="setFilter('Shopee', this)">Shopee</button>
                 <button class="filter-btn" onclick="setFilter('Amazon', this)">Amazon</button>
-                <button class="filter-btn" onclick="setFilter('Mercado Livre', this)">Mercado Livre</button>
+                <button class="filter-btn" onclick="setFilter('Mercado Livre', this)">M. Livre</button>
             </div>
         </div>
     </div>
@@ -65,7 +126,6 @@
                     if (!col[0] || col[0].trim() === "") continue;
 
                     let vUrl = col[0].trim().replace(/"/g, "");
-                    // Limpador automático de link Dropbox
                     if(vUrl.includes("dropbox.com")) {
                         vUrl = vUrl.replace("www.dropbox.com", "dl.dropboxusercontent.com").split('?')[0] + "?raw=1";
                     }
@@ -85,19 +145,17 @@
                             <div style="font-weight:bold; font-size:16px;">@${col[2] || 'achadinhos'} ${store ? '• '+store : ''}</div>
                             <div style="font-size:13px; margin-top:5px; color:#ddd;">${desc}</div>
                         </div>
-                        <a href="${col[1] || '#'}" target="_blank" class="btn-shop">🛍️ IR À LOJA ${store ? 'DA ' + store : ''}</a>
+                        <a href="${col[1] || '#'}" target="_blank" class="btn-shop">🛍️ IR À LOJA</a>
                     `;
                     container.appendChild(section);
                 }
 
                 document.getElementById('loading').style.display = 'none';
                 container.style.display = 'block';
-                // Tenta dar play no primeiro vídeo visível
                 setTimeout(() => { container.querySelector('video')?.play().catch(()=>{}); }, 500);
 
             } catch (e) {
-                console.error(e);
-                document.getElementById('loading').innerHTML = "<p>Erro ao conectar com a planilha.</p><button class='reload-btn' onclick='location.reload()'>Tentar Novamente</button>";
+                document.getElementById('loading').innerHTML = "<p>Erro na conexão.</p><button class='reload-btn' onclick='location.reload()'>Tentar Novamente</button>";
             }
         }
 
@@ -110,8 +168,7 @@
 
         function filtrar() {
             const search = document.getElementById('searchInput').value.toLowerCase();
-            const cards = document.querySelectorAll('.video-card');
-            cards.forEach(card => {
+            document.querySelectorAll('.video-card').forEach(card => {
                 const matchesStore = currentFilter === 'all' || card.dataset.store === currentFilter;
                 const matchesSearch = card.dataset.desc.includes(search) || card.dataset.store.includes(search);
                 card.style.display = (matchesStore && matchesSearch) ? 'flex' : 'none';
