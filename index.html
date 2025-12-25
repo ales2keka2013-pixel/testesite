@@ -23,7 +23,7 @@
 
         .mute-toggle { position: absolute; top: 130px; right: 20px; z-index: 50; background: rgba(0,0,0,0.4); color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 
-        /* Banner Elevado em 165px e sem nome de loja */
+        /* Banner Elevado e sem loja */
         .product-banner { position: absolute; bottom: 165px; left: 15px; right: 75px; background: #fff; border-radius: 12px; display: flex; align-items: center; padding: 10px; z-index: 40; text-decoration: none; color: #333; box-shadow: 0 10px 25px rgba(0,0,0,0.6); }
         .prod-img { width: 55px; height: 55px; border-radius: 6px; object-fit: cover; margin-right: 12px; background: #f0f0f0; }
         .prod-info { flex: 1; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
@@ -35,19 +35,16 @@
         .action-btn i { font-size: 30px; margin-bottom: 4px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
         .action-btn i.active { color: #FE2C55; }
 
-        /* Loader e Erro */
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 999; padding: 20px; text-align: center; }
         .spin { width: 35px; height: 35px; border: 3px solid #222; border-top-color: #FE2C55; border-radius: 50%; animation: s 1s linear infinite; margin-bottom: 15px; }
         @keyframes s { to { transform: rotate(360deg); } }
-        .error-msg { color: #ff4d4d; font-size: 14px; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
 
     <div id="loader">
         <div class="spin"></div>
-        <div id="statusText">Iniciando...</div>
-        <div id="errorBox" class="error-msg"></div>
+        <div id="statusText">Conectando...</div>
     </div>
 
     <div id="appContainer">
@@ -64,20 +61,96 @@
 
     <script>
         const SHEET_ID = '1817zpM3JYfKchLtHPOauozCcsVhDieTSs3QG5-5ZAVU';
-        // URL de exportação direta CSV (mais estável)
-        const DATA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+        // Cache-buster adicionado (?v=...) para evitar travamento de conexão
+        const DATA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0&v=${Math.random()}`;
 
         let globalMuted = true;
 
         async function init() {
             const status = document.getElementById('statusText');
-            const errorBox = document.getElementById('errorBox');
-
+            
             try {
-                status.innerText = "Conectando ao Google...";
                 const response = await fetch(DATA_URL);
+                if (!response.ok) throw new Error();
                 
-                if (!response.ok) throw new Error("A planilha não respondeu. Verifique se ela está 'Publicada na Web'.");
-
-                status.innerText = "Processando dados...";
                 const text = await response.text();
+                const rows = text.split('\n').slice(1).map(row => {
+                    return row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim());
+                });
+
+                const container = document.getElementById('appContainer');
+
+                rows.forEach(col => {
+                    if (!col[0] || col[0].length < 10) return;
+
+                    let videoUrl = col[0].replace("www.dropbox.com", "dl.dropboxusercontent.com").split('?')[0] + "?raw=1";
+                    const shopLink = col[1] || "#";
+                    const desc = col[3] || "Produto Vip";
+                    const store = (col[4] || "oferta").toLowerCase();
+                    
+                    // Imagem da Coluna G (índice 6)
+                    let bannerImgUrl = (col[6]) ? col[6].trim() : "";
+                    if (bannerImgUrl.includes("dropbox.com")) {
+                        bannerImgUrl = bannerImgUrl.replace("www.dropbox.com", "dl.dropboxusercontent.com").split('?')[0] + "?raw=1";
+                    }
+
+                    const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(videoUrl);
+                    const thumbImg = bannerImgUrl || (isImg ? videoUrl : "https://cdn-icons-png.flaticon.com/512/3081/3081840.png");
+
+                    const card = document.createElement('section');
+                    card.className = 'video-card';
+                    card.dataset.store = store;
+                    card.dataset.desc = desc.toLowerCase();
+
+                    card.innerHTML = `
+                        ${isImg ? `<img src="${videoUrl}" class="main-content">` : `
+                            <video loop playsinline muted src="${videoUrl}" onclick="toggleAudio()"></video>
+                            <div class="mute-toggle" onclick="toggleAudio()"><i class="fas fa-volume-mute"></i></div>
+                        `}
+                        <div class="side-actions">
+                            <button class="action-btn" onclick="this.querySelector('i').classList.toggle('active')"><i class="fas fa-heart"></i><span>Amei</span></button>
+                            <button class="action-btn" onclick="share()"><i class="fas fa-share"></i><span>Enviar</span></button>
+                        </div>
+                        <a href="${shopLink}" target="_blank" class="product-banner">
+                            <img src="${thumbImg}" class="prod-img">
+                            <div class="prod-info"><span class="prod-title">${desc}</span></div>
+                            <div class="btn-buy">COMPRAR</div>
+                        </a>
+                    `;
+                    container.appendChild(card);
+                });
+
+                document.getElementById('loader').style.display = 'none';
+                container.style.display = 'block';
+                checkVideo();
+
+            } catch (err) {
+                status.innerText = "Verifique se a planilha está 'Publicada na Web'";
+            }
+        }
+
+        function toggleAudio() {
+            globalMuted = !globalMuted;
+            document.querySelectorAll('video').forEach(v => v.muted = globalMuted);
+            document.querySelectorAll('.mute-toggle i').forEach(i => i.className = globalMuted ? 'fas fa-volume-mute' : 'fas fa-volume-up');
+        }
+
+        function checkVideo() {
+            document.querySelectorAll('video').forEach(v => {
+                const b = v.getBoundingClientRect();
+                if (b.top >= -200 && b.top <= 200) v.play().catch(()=>{});
+                else v.pause();
+            });
+        }
+
+        function setFilter(v, b) {
+            document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            filtrar();
+        }
+
+        function filtrar() {
+            const t = document.getElementById('searchInput').value.toLowerCase();
+            const f = document.querySelector('.filter-btn.active').innerText.toLowerCase().replace('m. livre', 'mercado livre');
+            document.querySelectorAll('.video-card').forEach(c => {
+                const mS = f === 'todos' || c.dataset.store === f;
