@@ -12,18 +12,20 @@
         #appContainer { height: 100vh; width: 100%; max-width: 500px; margin: 0 auto; overflow-y: scroll; scroll-snap-type: y mandatory; position: relative; background: #000; display: none; }
         #appContainer::-webkit-scrollbar { display: none; }
 
+        /* Menu */
         .header-tools { position: fixed; top: 0; width: 100%; max-width: 500px; z-index: 100; padding: 15px 0; background: linear-gradient(rgba(0,0,0,0.8), transparent); display: flex; flex-direction: column; align-items: center; }
         .search-bar { width: 90%; padding: 10px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.2); color: white; outline: none; margin-bottom: 12px; text-align: center; }
         .filter-group { display: flex; width: 95%; justify-content: center; gap: 5px; }
         .filter-btn { flex: 1; padding: 8px 0; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; color: white; font-size: 10px; cursor: pointer; text-align: center; }
         .filter-btn.active { background: #FE2C55; border-color: #FE2C55; font-weight: bold; }
 
+        /* Vídeo */
         .video-card { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; }
-        video, img.main-content { width: 100%; height: 100%; object-fit: contain; }
+        video, img.main-content { width: 100%; height: 100%; object-fit: contain; background: #000; }
 
         .mute-toggle { position: absolute; top: 130px; right: 20px; z-index: 50; background: rgba(0,0,0,0.4); color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 
-        /* Banner Elevado e sem loja */
+        /* Banner - Altura 165px e sem Loja */
         .product-banner { position: absolute; bottom: 165px; left: 15px; right: 75px; background: #fff; border-radius: 12px; display: flex; align-items: center; padding: 10px; z-index: 40; text-decoration: none; color: #333; box-shadow: 0 10px 25px rgba(0,0,0,0.6); }
         .prod-img { width: 55px; height: 55px; border-radius: 6px; object-fit: cover; margin-right: 12px; background: #f0f0f0; }
         .prod-info { flex: 1; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
@@ -35,7 +37,7 @@
         .action-btn i { font-size: 30px; margin-bottom: 4px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
         .action-btn i.active { color: #FE2C55; }
 
-        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 999; padding: 20px; text-align: center; }
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 999; }
         .spin { width: 35px; height: 35px; border: 3px solid #222; border-top-color: #FE2C55; border-radius: 50%; animation: s 1s linear infinite; margin-bottom: 15px; }
         @keyframes s { to { transform: rotate(360deg); } }
     </style>
@@ -44,7 +46,7 @@
 
     <div id="loader">
         <div class="spin"></div>
-        <div id="statusText">Buscando Ofertas...</div>
+        <p>Carregando Vitrine...</p>
     </div>
 
     <div id="appContainer">
@@ -60,10 +62,7 @@
     </div>
 
     <script>
-        // Substitua APENAS o ID se necessário
         const SHEET_ID = '1817zpM3JYfKchLtHPOauozCcsVhDieTSs3QG5-5ZAVU';
-        
-        // Esta URL usa o formato de visualização do Google que dribla o erro de "Conectando"
         const DATA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
         let globalMuted = true;
@@ -72,104 +71,19 @@
             try {
                 const response = await fetch(DATA_URL);
                 const text = await response.text();
-                
-                // O Google retorna um lixo de texto antes do JSON, precisamos limpar:
                 const jsonText = text.match(/google\.visualization\.Query\.setResponse\(([\s\S\w\W]*)\);/)[1];
                 const data = JSON.parse(jsonText);
-                const rows = data.table.rows;
+                
+                // .slice(1) remove a primeira linha (cabeçalho) da planilha
+                const rows = data.table.rows.slice(1);
 
                 const container = document.getElementById('appContainer');
 
                 rows.forEach(row => {
                     const c = row.c;
-                    // Mapeamento das colunas: A=0, B=1, C=2, D=3, E=4, F=5, G=6
-                    if (!c[0] || !c[0].v) return;
+                    if (!c[0] || !c[0].v || c[0].v.length < 5) return;
 
                     let videoUrl = c[0].v.replace("www.dropbox.com", "dl.dropboxusercontent.com").split('?')[0] + "?raw=1";
                     const shopLink = c[1] ? c[1].v : "#";
-                    const desc = c[3] ? c[3].v : "Produto Vip";
-                    const store = c[4] ? c[4].v.toLowerCase() : "oferta";
-                    
-                    let bannerImgUrl = (c[6] && c[6].v) ? c[6].v.trim() : "";
-                    if (bannerImgUrl.includes("dropbox.com")) {
-                        bannerImgUrl = bannerImgUrl.replace("www.dropbox.com", "dl.dropboxusercontent.com").split('?')[0] + "?raw=1";
-                    }
-
-                    const isImg = /\.(jpg|jpeg|png|webp|gif)$/i.test(videoUrl);
-                    const thumbImg = bannerImgUrl || (isImg ? videoUrl : "https://cdn-icons-png.flaticon.com/512/3081/3081840.png");
-
-                    const card = document.createElement('section');
-                    card.className = 'video-card';
-                    card.dataset.store = store;
-                    card.dataset.desc = desc.toLowerCase();
-
-                    card.innerHTML = `
-                        ${isImg ? `<img src="${videoUrl}" class="main-content">` : `
-                            <video loop playsinline muted src="${videoUrl}" onclick="toggleAudio()"></video>
-                            <div class="mute-toggle" onclick="toggleAudio()"><i class="fas fa-volume-mute"></i></div>
-                        `}
-                        <div class="side-actions">
-                            <button class="action-btn" onclick="this.querySelector('i').classList.toggle('active')"><i class="fas fa-heart"></i><span>Amei</span></button>
-                            <button class="action-btn" onclick="share()"><i class="fas fa-share"></i><span>Enviar</span></button>
-                        </div>
-                        <a href="${shopLink}" target="_blank" class="product-banner">
-                            <img src="${thumbImg}" class="prod-img">
-                            <div class="prod-info"><span class="prod-title">${desc}</span></div>
-                            <div class="btn-buy">COMPRAR</div>
-                        </a>
-                    `;
-                    container.appendChild(card);
-                });
-
-                document.getElementById('loader').style.display = 'none';
-                container.style.display = 'block';
-                checkVideo();
-
-            } catch (err) {
-                document.getElementById('statusText').innerHTML = "Erro de Sincronização.<br><small>Verifique se publicou a planilha em: Arquivo > Compartilhar > Publicar na Web</small>";
-                console.error(err);
-            }
-        }
-
-        function toggleAudio() {
-            globalMuted = !globalMuted;
-            document.querySelectorAll('video').forEach(v => v.muted = globalMuted);
-            document.querySelectorAll('.mute-toggle i').forEach(i => i.className = globalMuted ? 'fas fa-volume-mute' : 'fas fa-volume-up');
-        }
-
-        function checkVideo() {
-            document.querySelectorAll('video').forEach(v => {
-                const b = v.getBoundingClientRect();
-                if (b.top >= -200 && b.top <= 200) v.play().catch(()=>{});
-                else v.pause();
-            });
-        }
-
-        function setFilter(v, b) {
-            document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active'));
-            b.classList.add('active');
-            filtrar();
-        }
-
-        function filtrar() {
-            const t = document.getElementById('searchInput').value.toLowerCase();
-            const f = document.querySelector('.filter-btn.active').innerText.toLowerCase().replace('m. livre', 'mercado livre');
-            document.querySelectorAll('.video-card').forEach(c => {
-                const mS = f === 'todos' || c.dataset.store === f;
-                const mT = c.dataset.desc.includes(t);
-                c.style.display = (mS && mT) ? 'flex' : 'none';
-            });
-            document.getElementById('appContainer').scrollTop = 0;
-            checkVideo();
-        }
-
-        function share() { if(navigator.share) navigator.share({url: window.location.href}); }
-        document.getElementById('appContainer').addEventListener('scroll', () => {
-            clearTimeout(window.sc);
-            window.sc = setTimeout(checkVideo, 100);
-        });
-
-        init();
-    </script>
-</body>
-</html>
+                    const desc = c[3] ? c[3].v : "Produto VIP";
+                    const store = c[4] ? c[4].v
