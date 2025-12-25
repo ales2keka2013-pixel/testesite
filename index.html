@@ -7,132 +7,39 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { height: 100%; background-color: #000; font-family: sans-serif; overflow: hidden; display: flex; justify-content: center; }
         
-        body, html { 
-            height: 100%; 
-            background-color: #000; 
-            font-family: 'Segoe UI', sans-serif; 
-            overflow: hidden; 
-            display: flex; 
-            justify-content: center; 
-        }
-
-        .app-container { 
-            height: 100vh; 
-            width: 100%; 
-            max-width: 500px; 
-            background-color: #000;
-            overflow-y: scroll; 
-            scroll-snap-type: y mandatory; 
-            position: relative; 
-        }
+        .app-container { height: 100vh; width: 100%; max-width: 500px; overflow-y: scroll; scroll-snap-type: y mandatory; position: relative; }
         .app-container::-webkit-scrollbar { display: none; }
 
-        /* Barra de Busca e Filtros */
-        .header-tools {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            max-width: 500px;
-            z-index: 100;
-            padding: 10px;
-            background: linear-gradient(rgba(0,0,0,0.8), transparent);
-        }
+        .header-tools { position: fixed; top: 0; width: 100%; max-width: 500px; z-index: 100; padding: 10px; background: linear-gradient(rgba(0,0,0,0.8), transparent); }
+        .search-bar { width: 100%; padding: 12px; border-radius: 25px; border: none; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; outline: none; margin-bottom: 10px; }
+        
+        .filter-group { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; }
+        .filter-btn { padding: 8px 15px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; color: white; font-size: 11px; white-space: nowrap; cursor: pointer; }
+        .filter-btn.active { background: #FE2C55; border-color: #FE2C55; }
 
-        .search-bar {
-            width: 100%;
-            padding: 12px 18px;
-            border-radius: 25px;
-            border: none;
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-            color: white;
-            outline: none;
-            margin-bottom: 10px;
-        }
+        .video-card { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
+        video, img { width: 100%; height: auto; max-height: 100vh; object-fit: contain; }
 
-        .filter-group {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding: 5px 0;
-        }
-        .filter-group::-webkit-scrollbar { display: none; }
+        .overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px 20px 120px 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 10; pointer-events: none; }
+        .btn-shop { position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%); background: #FE2C55; color: white; text-align: center; padding: 16px; border-radius: 12px; text-decoration: none; font-weight: bold; width: 90%; z-index: 20; text-transform: uppercase; }
 
-        .filter-btn {
-            padding: 8px 16px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 20px;
-            color: white;
-            font-size: 12px;
-            white-space: nowrap;
-            cursor: pointer;
-        }
-        .filter-btn.active { background: #FE2C55; border-color: #FE2C55; font-weight: bold; }
-
-        /* Estilo do Card de Vídeo */
-        .video-card { 
-            height: 100vh; 
-            width: 100%; 
-            scroll-snap-align: start; 
-            position: relative; 
-            background: #000; 
-            display: flex;
-            align-items: center; 
-            justify-content: center;
-        }
-        .video-card.hidden { display: none; }
-
-        video, img { 
-            width: 100%; 
-            height: auto; 
-            max-height: 100vh; 
-            object-fit: contain; /* Mantém a proporção sem esticar */
-        }
-
-        /* Informações e Botão */
-        .overlay { 
-            position: absolute; 
-            bottom: 0; 
-            left: 0; 
-            width: 100%; 
-            padding: 20px 20px 120px 20px; 
-            background: linear-gradient(transparent, rgba(0,0,0,0.9)); 
-            z-index: 10; 
-            pointer-events: none; 
-        }
-
-        .btn-shop { 
-            position: absolute; 
-            bottom: 85px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            background: #FE2C55; 
-            color: white; 
-            text-align: center; 
-            padding: 16px; 
-            border-radius: 12px; 
-            text-decoration: none; 
-            font-weight: bold; 
-            width: 90%; 
-            z-index: 20; 
-            text-transform: uppercase;
-            box-shadow: 0 5px 15px rgba(254, 44, 85, 0.4);
-            letter-spacing: 1px;
-        }
-
-        .loading { color: white; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; z-index: 200; font-family: sans-serif; }
+        .reload-btn { margin-top: 15px; padding: 10px 20px; border-radius: 20px; border: none; background: #FE2C55; color: white; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="loading" class="loading">Carregando Achadinhos...</div>
+    <div id="loading" class="loading">
+        <p>Buscando Achadinhos...</p>
+        <button class="reload-btn" onclick="location.reload()">Recarregar Página</button>
+    </div>
 
     <div class="app-container" id="appContainer" style="display: none;">
         <div class="header-tools">
-            <input type="text" class="search-bar" id="searchInput" placeholder="Buscar produto ou loja..." oninput="filtrar()">
-            <div class="filter-group" id="filterGroup">
+            <input type="text" class="search-bar" id="searchInput" placeholder="Pesquisar produto..." oninput="filtrar()">
+            <div class="filter-group">
                 <button class="filter-btn active" onclick="setFilter('all', this)">Todos</button>
                 <button class="filter-btn" onclick="setFilter('Shopee', this)">Shopee</button>
                 <button class="filter-btn" onclick="setFilter('Amazon', this)">Amazon</button>
@@ -142,4 +49,86 @@
     </div>
 
     <script>
-        const SHEET_ID = '1817zpM3JYfK
+        const SHEET_ID = '1817zpM3JYfKchLtHPOauozCcsVhDieTSs3QG5-5ZAVU';
+        const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=tsv&gid=0&cache=${Date.now()}`;
+        let currentFilter = 'all';
+
+        async function carregar() {
+            try {
+                const res = await fetch(URL);
+                const tsv = await res.text();
+                const lines = tsv.split('\n');
+                const container = document.getElementById('appContainer');
+
+                for (let i = 1; i < lines.length; i++) {
+                    const col = lines[i].split('\t');
+                    if (!col[0] || col[0].trim() === "") continue;
+
+                    let vUrl = col[0].trim().replace(/"/g, "");
+                    // Limpador automático de link Dropbox
+                    if(vUrl.includes("dropbox.com")) {
+                        vUrl = vUrl.replace("www.dropbox.com", "dl.dropboxusercontent.com").split('?')[0] + "?raw=1";
+                    }
+
+                    const store = (col[4] || "").trim();
+                    const desc = (col[3] || "").trim();
+                    const isImage = vUrl.match(/\.(jpg|jpeg|png|webp|gif)$/i);
+
+                    const section = document.createElement('section');
+                    section.className = 'video-card';
+                    section.dataset.store = store.toLowerCase();
+                    section.dataset.desc = desc.toLowerCase();
+
+                    section.innerHTML = `
+                        ${isImage ? `<img src="${vUrl}">` : `<video loop playsinline muted src="${vUrl}" onclick="this.muted=!this.muted; this.play();"></video>`}
+                        <div class="overlay">
+                            <div style="font-weight:bold; font-size:16px;">@${col[2] || 'achadinhos'} ${store ? '• '+store : ''}</div>
+                            <div style="font-size:13px; margin-top:5px; color:#ddd;">${desc}</div>
+                        </div>
+                        <a href="${col[1] || '#'}" target="_blank" class="btn-shop">🛍️ IR À LOJA ${store ? 'DA ' + store : ''}</a>
+                    `;
+                    container.appendChild(section);
+                }
+
+                document.getElementById('loading').style.display = 'none';
+                container.style.display = 'block';
+                // Tenta dar play no primeiro vídeo visível
+                setTimeout(() => { container.querySelector('video')?.play().catch(()=>{}); }, 500);
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById('loading').innerHTML = "<p>Erro ao conectar com a planilha.</p><button class='reload-btn' onclick='location.reload()'>Tentar Novamente</button>";
+            }
+        }
+
+        function setFilter(store, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = store.toLowerCase();
+            filtrar();
+        }
+
+        function filtrar() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.querySelectorAll('.video-card');
+            cards.forEach(card => {
+                const matchesStore = currentFilter === 'all' || card.dataset.store === currentFilter;
+                const matchesSearch = card.dataset.desc.includes(search) || card.dataset.store.includes(search);
+                card.style.display = (matchesStore && matchesSearch) ? 'flex' : 'none';
+                if (card.style.display === 'none') card.querySelector('video')?.pause();
+            });
+            document.getElementById('appContainer').scrollTop = 0;
+        }
+
+        document.getElementById('appContainer').addEventListener('scroll', () => {
+            document.querySelectorAll('.video-card:not([style*="display: none"]) video').forEach(v => {
+                const rect = v.getBoundingClientRect();
+                if (rect.top >= -150 && rect.top <= 150) v.play().catch(()=>{});
+                else v.pause();
+            });
+        });
+
+        carregar();
+    </script>
+</body>
+</html>
