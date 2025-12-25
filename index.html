@@ -26,7 +26,13 @@
         /* Ícone de Som */
         .mute-toggle { position: absolute; top: 125px; right: 20px; z-index: 50; background: rgba(0,0,0,0.4); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-        /* Botão de Ação Único */
+        /* Botões Laterais Recuperados */
+        .side-actions { position: absolute; right: 15px; bottom: 180px; display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 30; }
+        .action-btn { background: none; border: none; color: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; font-size: 11px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
+        .action-btn i { font-size: 28px; margin-bottom: 5px; }
+        .action-btn i.active { color: #FE2C55; }
+
+        /* Botão de Ir à Loja */
         .btn-shop { position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%); background: #FE2C55; color: white; text-align: center; padding: 18px; border-radius: 50px; text-decoration: none; font-weight: bold; width: 85%; z-index: 20; text-transform: uppercase; box-shadow: 0 4px 20px rgba(0,0,0,0.6); font-size: 16px; }
 
         /* Loader */
@@ -59,7 +65,6 @@
         const DATA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=tsv&gid=0`;
         let globalMuted = true;
 
-        // Anti-travamento
         setTimeout(() => {
             if(document.getElementById('loader').style.display !== 'none') {
                 document.getElementById('loader').style.display = 'none';
@@ -78,75 +83,4 @@
                 rows.forEach((col, index) => {
                     if (index === 0 || !col[0] || col[0].length < 10) return;
 
-                    const videoUrl = col[0].trim().replace("www.dropbox.com", "dl.dropboxusercontent.com").replace("?dl=0", "") + (col[0].includes("dropbox") ? "?raw=1" : "");
-                    const shopLink = (col[1] || "#").trim();
-                    const desc = (col[3] || "").toLowerCase();
-                    const store = (col[4] || "").toLowerCase();
-                    const category = (col[5] || "").toLowerCase();
-                    const isImg = /\.(jpg|jpeg|png|webp)$/i.test(videoUrl);
-
-                    const card = document.createElement('section');
-                    card.className = 'video-card';
-                    card.dataset.store = store;
-                    card.dataset.desc = desc;
-                    card.dataset.category = category;
-
-                    card.innerHTML = `
-                        ${isImg ? `<img src="${videoUrl}">` : `
-                            <video loop playsinline muted src="${videoUrl}" onclick="toggleAudio()"></video>
-                            <div class="mute-toggle" onclick="toggleAudio()"><i class="fas fa-volume-mute"></i></div>
-                        `}
-                        <a href="${shopLink}" target="_blank" class="btn-shop">🛍️ IR À LOJA</a>
-                    `;
-                    container.appendChild(card);
-                });
-
-                document.getElementById('loader').style.display = 'none';
-                container.style.display = 'block';
-                checkVideo();
-
-            } catch (err) { console.log("Erro ao carregar"); }
-        }
-
-        function toggleAudio() {
-            globalMuted = !globalMuted;
-            document.querySelectorAll('video').forEach(v => v.muted = globalMuted);
-            document.querySelectorAll('.mute-toggle i').forEach(i => i.className = globalMuted ? 'fas fa-volume-mute' : 'fas fa-volume-up');
-        }
-
-        function checkVideo() {
-            document.querySelectorAll('video').forEach(v => {
-                const b = v.getBoundingClientRect();
-                if (b.top >= -200 && b.top <= 200) v.play().catch(()=>{});
-                else v.pause();
-            });
-        }
-
-        function setFilter(v, b) {
-            document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active'));
-            b.classList.add('active');
-            filtrar();
-        }
-
-        function filtrar() {
-            const t = document.getElementById('searchInput').value.toLowerCase();
-            const f = document.querySelector('.filter-btn.active').innerText.toLowerCase().replace('m. livre', 'mercado livre');
-            
-            document.querySelectorAll('.video-card').forEach(c => {
-                const mS = f === 'todos' || c.dataset.store === f;
-                const mT = c.dataset.desc.includes(t) || c.dataset.category.includes(t);
-                c.style.display = (mS && mT) ? 'flex' : 'none';
-            });
-            document.getElementById('appContainer').scrollTop = 0;
-            checkVideo();
-        }
-
-        document.getElementById('appContainer').addEventListener('scroll', () => {
-            clearTimeout(window.sc);
-            window.sc = setTimeout(checkVideo, 100);
-        });
-
-        init();
-    </script>
-</body>
-</html>
+                    const
