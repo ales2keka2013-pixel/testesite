@@ -8,63 +8,120 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        /* Fundo do Desktop */
         body, html { 
             height: 100%; 
-            background-color: #1a1a1a; /* Cinza escuro no fundo do PC */
-            font-family: sans-serif; 
+            background-color: #000; 
+            font-family: 'Segoe UI', sans-serif; 
             overflow: hidden; 
             display: flex; 
             justify-content: center; 
-            align-items: center;
         }
 
-        /* Moldura do "Celular" no Desktop */
         .app-container { 
             height: 100vh; 
             width: 100%; 
-            max-width: 450px; /* Largura ideal para Desktop */
+            max-width: 500px; 
             background-color: #000;
             overflow-y: scroll; 
             scroll-snap-type: y mandatory; 
             position: relative; 
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
         }
         .app-container::-webkit-scrollbar { display: none; }
 
-        /* Estilo dos Filtros no topo */
+        /* Barra de Busca e Filtros */
         .header-tools {
-            position: absolute;
+            position: fixed;
             top: 0;
             width: 100%;
+            max-width: 500px;
             z-index: 100;
-            padding: 15px;
+            padding: 10px;
             background: linear-gradient(rgba(0,0,0,0.8), transparent);
         }
 
         .search-bar {
             width: 100%;
-            padding: 12px;
+            padding: 12px 18px;
             border-radius: 25px;
             border: none;
-            background: rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.2);
             backdrop-filter: blur(10px);
             color: white;
+            outline: none;
             margin-bottom: 10px;
         }
 
-        .video-card { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; background: #000; }
-        video, img { width: 100%; height: 100%; object-fit: cover; }
+        .filter-group {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 5px 0;
+        }
+        .filter-group::-webkit-scrollbar { display: none; }
 
-        .overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px 20px 110px 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 10; pointer-events: none; }
-        
-        .btn-shop { 
-            position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); 
-            background: #FE2C55; color: white; text-align: center; padding: 15px; 
-            border-radius: 10px; text-decoration: none; font-weight: bold; width: 85%; z-index: 20; 
+        .filter-btn {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 20px;
+            color: white;
+            font-size: 12px;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .filter-btn.active { background: #FE2C55; border-color: #FE2C55; font-weight: bold; }
+
+        /* Estilo do Card de Vídeo */
+        .video-card { 
+            height: 100vh; 
+            width: 100%; 
+            scroll-snap-align: start; 
+            position: relative; 
+            background: #000; 
+            display: flex;
+            align-items: center; /* Centraliza o vídeo verticalmente */
+            justify-content: center;
+        }
+        .video-card.hidden { display: none; }
+
+        video, img { 
+            width: 100%; 
+            height: auto; /* Deixa a altura se ajustar à largura */
+            max-height: 100vh; 
+            object-fit: contain; /* NÃO ESTICA - Mantém a proporção original */
         }
 
-        .loading { color: white; text-align: center; }
+        /* Informações e Botão */
+        .overlay { 
+            position: absolute; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%; 
+            padding: 20px 20px 120px 20px; 
+            background: linear-gradient(transparent, rgba(0,0,0,0.9)); 
+            z-index: 10; 
+            pointer-events: none; 
+        }
+
+        .btn-shop { 
+            position: absolute; 
+            bottom: 85px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            background: #FE2C55; 
+            color: white; 
+            text-align: center; 
+            padding: 16px; 
+            border-radius: 12px; 
+            text-decoration: none; 
+            font-weight: bold; 
+            width: 90%; 
+            z-index: 20; 
+            text-transform: uppercase;
+            box-shadow: 0 5px 15px rgba(254, 44, 85, 0.4);
+        }
+
+        .loading { color: white; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); }
     </style>
 </head>
 <body>
@@ -73,13 +130,20 @@
 
     <div class="app-container" id="appContainer" style="display: none;">
         <div class="header-tools">
-            <input type="text" class="search-bar" id="searchInput" placeholder="🔍 Buscar produto ou loja..." oninput="filtrar()">
+            <input type="text" class="search-bar" id="searchInput" placeholder="Buscar produto ou loja..." oninput="filtrar()">
+            <div class="filter-group" id="filterGroup">
+                <button class="filter-btn active" onclick="setFilter('all', this)">Todos</button>
+                <button class="filter-btn" onclick="setFilter('Shopee', this)">Shopee</button>
+                <button class="filter-btn" onclick="setFilter('Amazon', this)">Amazon</button>
+                <button class="filter-btn" onclick="setFilter('Mercado Livre', this)">Mercado Livre</button>
+            </div>
         </div>
         </div>
 
     <script>
         const SHEET_ID = '1817zpM3JYfKchLtHPOauozCcsVhDieTSs3QG5-5ZAVU';
         const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=tsv&t=${new Date().getTime()}`;
+        let currentFilter = 'all';
 
         async function carregar() {
             try {
@@ -95,18 +159,22 @@
                     let vUrl = col[0].trim();
                     if(vUrl.includes("dropbox.com")) vUrl = vUrl.replace("www.dropbox.com", "dl.dropboxusercontent.com").replace("dl=0", "raw=1");
 
+                    const store = col[4]?.trim() || "";
+                    const desc = col[3]?.trim() || "";
                     const isImage = vUrl.match(/\.(jpg|jpeg|png|webp)$/i);
+
                     const section = document.createElement('section');
                     section.className = 'video-card';
-                    section.dataset.info = (col[3] + col[4]).toLowerCase();
+                    section.dataset.store = store.toLowerCase();
+                    section.dataset.desc = desc.toLowerCase();
 
                     section.innerHTML = `
-                        ${isImage ? `<img src="${vUrl}">` : `<video loop playsinline muted src="${vUrl}" onclick="toggleAudio(this)"></video>`}
+                        ${isImage ? `<img src="${vUrl}">` : `<video loop playsinline muted src="${vUrl}" onclick="this.muted=!this.muted; this.play();"></video>`}
                         <div class="overlay">
-                            <div style="font-weight:bold;">@${col[2] || 'achadinhos'} • ${col[4] || ''}</div>
-                            <div style="font-size:14px; margin-top:5px;">${col[3] || ''}</div>
+                            <div style="font-weight:bold; font-size:18px;">@${col[2] || 'achadinhos'} ${store ? '• '+store : ''}</div>
+                            <div style="font-size:14px; margin-top:5px; color:#ddd;">${desc}</div>
                         </div>
-                        <a href="${col[1]}" target="_blank" class="btn-shop">🛍️ COMPRAR AGORA</a>
+                        <a href="${col[1]}" target="_blank" class="btn-shop">🛍️ COMPRAR NA ${store || 'LOJA'}</a>
                     `;
                     container.appendChild(section);
                 }
@@ -116,20 +184,27 @@
             } catch (e) { console.error(e); }
         }
 
-        function toggleAudio(v) {
-            v.muted = !v.muted; // Alterna entre mudo e som ao clicar
-            if(v.paused) v.play();
+        function setFilter(store, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = store.toLowerCase();
+            filtrar();
         }
 
         function filtrar() {
             const search = document.getElementById('searchInput').value.toLowerCase();
             document.querySelectorAll('.video-card').forEach(card => {
-                card.style.display = card.dataset.info.includes(search) ? 'block' : 'none';
+                const matchesStore = currentFilter === 'all' || card.dataset.store === currentFilter;
+                const matchesSearch = card.dataset.desc.includes(search) || card.dataset.store.includes(search);
+                
+                if (matchesStore && matchesSearch) card.classList.remove('hidden');
+                else { card.classList.add('hidden'); card.querySelector('video')?.pause(); }
             });
+            document.getElementById('appContainer').scrollTop = 0;
         }
 
         document.getElementById('appContainer').addEventListener('scroll', () => {
-            document.querySelectorAll('video').forEach(v => {
+            document.querySelectorAll('.video-card:not(.hidden) video').forEach(v => {
                 const rect = v.getBoundingClientRect();
                 if (rect.top >= -100 && rect.top <= 100) v.play();
                 else v.pause();
