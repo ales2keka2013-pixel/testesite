@@ -7,51 +7,49 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body, html { height: 100%; background-color: #000; font-family: sans-serif; overflow: hidden; display: flex; justify-content: center; }
+        body, html { height: 100%; background-color: #000; font-family: sans-serif; overflow: hidden; }
         
-        #appContainer { height: 100vh; width: 100%; max-width: 500px; overflow-y: scroll; scroll-snap-type: y mandatory; position: relative; background: #000; display: none; }
+        /* Container Principal */
+        #appContainer { height: 100vh; width: 100%; max-width: 500px; margin: 0 auto; overflow-y: scroll; scroll-snap-type: y mandatory; position: relative; background: #000; display: none; }
         #appContainer::-webkit-scrollbar { display: none; }
 
-        .header-tools { 
-            position: fixed; top: 0; width: 100%; max-width: 500px; z-index: 100; padding: 15px 0; 
-            background: linear-gradient(rgba(0,0,0,0.9), transparent); display: flex; flex-direction: column; align-items: center;
-        }
+        /* Interface Fixa */
+        .header-tools { position: fixed; top: 0; width: 100%; max-width: 500px; z-index: 100; padding: 15px 0; background: linear-gradient(rgba(0,0,0,0.9), transparent); display: flex; flex-direction: column; align-items: center; }
         .search-bar { width: 90%; padding: 10px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.2); color: white; outline: none; margin-bottom: 12px; text-align: center; }
         .filter-group { display: flex; width: 95%; justify-content: center; gap: 5px; }
         .filter-btn { flex: 1; padding: 8px 0; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; color: white; font-size: 10px; cursor: pointer; text-align: center; }
         .filter-btn.active { background: #FE2C55; border-color: #FE2C55; font-weight: bold; }
 
+        /* Estilo dos Cards */
         .video-card { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; background: #000; }
-        video, img { width: 100%; height: 100%; object-fit: contain; }
+        video, img { width: 100%; height: 100%; object-fit: contain; pointer-events: auto; }
 
         .mute-toggle { position: absolute; top: 125px; right: 20px; z-index: 50; background: rgba(0,0,0,0.5); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-
         .side-actions { position: absolute; right: 15px; bottom: 180px; display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 30; }
         .action-btn { background: none; border: none; color: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; font-size: 11px; }
         .action-btn i { font-size: 28px; margin-bottom: 5px; }
-        .action-btn i.active { color: #FE2C55; }
 
         .overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px 20px 180px 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 10; pointer-events: none; }
         .store-tag { background: #FE2C55; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 8px; display: inline-block; }
         .product-desc { font-size: 14px; color: #fff; line-height: 1.4; text-shadow: 1px 1px 3px #000; }
-
         .btn-shop { position: absolute; bottom: 110px; left: 50%; transform: translateX(-50%); background: #FE2C55; color: white; text-align: center; padding: 16px; border-radius: 50px; text-decoration: none; font-weight: bold; width: 85%; z-index: 20; text-transform: uppercase; }
 
-        #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 999; }
-        .spinner { width: 30px; height: 30px; border: 3px solid #333; border-top: 3px solid #FE2C55; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Loader */
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 999; }
+        .spin { width: 30px; height: 30px; border: 3px solid #222; border-top-color: #FE2C55; border-radius: 50%; animation: s 1s linear infinite; margin-bottom: 10px; }
+        @keyframes s { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <div id="loading-screen">
-        <div class="spinner"></div>
-        <p id="status-text">Sincronizando Achadinhos...</p>
+    <div id="loader">
+        <div class="spin"></div>
+        <p id="msg">Sincronizando dados...</p>
     </div>
 
     <div id="appContainer">
         <div class="header-tools">
-            <input type="text" class="search-bar" id="searchInput" placeholder="Buscar produto ou categoria..." oninput="filtrar()">
+            <input type="text" class="search-bar" id="searchInput" placeholder="Buscar..." oninput="filtrar()">
             <div class="filter-group">
                 <button class="filter-btn active" onclick="setFilter('all', this)">Todos</button>
                 <button class="filter-btn" onclick="setFilter('Shopee', this)">Shopee</button>
@@ -62,81 +60,112 @@
     </div>
 
     <script>
-        // CERTIFIQUE-SE QUE O ID DA PLANILHA ABAIXO ESTÁ CORRETO
         const SHEET_ID = '1817zpM3JYfKchLtHPOauozCcsVhDieTSs3QG5-5ZAVU';
-        const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=tsv&gid=0&cache=${Date.now()}`;
+        const DATA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=tsv&gid=0`;
         let globalMuted = true;
 
-        async function carregar() {
-            const container = document.getElementById('appContainer');
-            const loading = document.getElementById('loading-screen');
-            
+        // Força a exibição se demorar demais (Safe mode)
+        setTimeout(() => {
+            const loader = document.getElementById('loader');
+            if(loader.style.display !== 'none') {
+                console.log("Tempo limite atingido. Tentando mostrar o que carregou.");
+                document.getElementById('appContainer').style.display = 'block';
+                loader.style.display = 'none';
+            }
+        }, 6000);
+
+        async function init() {
             try {
-                const res = await fetch(URL);
-                if (!res.ok) throw new Error("Falha ao baixar planilha");
-                const tsv = await res.text();
-                const rows = tsv.split(/\r?\n/); // Divide linhas lidando com diferentes sistemas (Win/Mac)
+                const response = await fetch(DATA_URL);
+                const data = await response.text();
+                const rows = data.split('\n').map(row => row.split('\t'));
+                
+                const container = document.getElementById('appContainer');
 
-                for (let i = 1; i < rows.length; i++) {
-                    try {
-                        const col = rows[i].split('\t');
-                        if (col.length < 2 || !col[0].trim()) continue; // Pula linhas inválidas
+                rows.forEach((col, index) => {
+                    if (index === 0 || !col[0] || col[0].length < 5) return;
 
-                        let videoUrl = col[0].trim().replace(/"/g, "");
-                        if(videoUrl.includes("dropbox.com")) {
-                            videoUrl = videoUrl.replace("www.dropbox.com", "dl.dropboxusercontent.com").split('?')[0] + "?raw=1";
-                        }
+                    const videoUrl = col[0].trim().replace("www.dropbox.com", "dl.dropboxusercontent.com").replace("?dl=0", "") + (col[0].includes("dropbox") ? "?raw=1" : "");
+                    const shopLink = (col[1] || "#").trim();
+                    const desc = (col[3] || "Achadinho").trim();
+                    const store = (col[4] || "").trim();
+                    const category = (col[5] || "").trim();
+                    const isImg = /\.(jpg|jpeg|png|webp)$/i.test(videoUrl);
 
-                        const shopLink = (col[1] || "#").trim();
-                        // Pulamos col[2] (Username) conforme solicitado
-                        const desc = (col[3] || "Achadinho").trim();
-                        const store = (col[4] || "").trim();
-                        const category = (col[5] || "").trim();
-                        const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(videoUrl);
+                    const card = document.createElement('section');
+                    card.className = 'video-card';
+                    card.dataset.store = store.toLowerCase();
+                    card.dataset.desc = desc.toLowerCase();
+                    card.dataset.category = category.toLowerCase();
 
-                        const section = document.createElement('section');
-                        section.className = 'video-card';
-                        section.dataset.store = store.toLowerCase();
-                        section.dataset.desc = desc.toLowerCase();
-                        section.dataset.category = category.toLowerCase();
+                    card.innerHTML = `
+                        ${isImg ? `<img src="${videoUrl}">` : `
+                            <video loop playsinline muted src="${videoUrl}" onclick="toggleAudio()"></video>
+                            <div class="mute-toggle" onclick="toggleAudio()"><i class="fas fa-volume-mute"></i></div>
+                        `}
+                        <div class="side-actions">
+                            <button class="action-btn" onclick="this.firstChild.classList.toggle('active')"><i class="fas fa-heart"></i><span>Amei</span></button>
+                            <button class="action-btn" onclick="share()"><i class="fas fa-share"></i><span>Enviar</span></button>
+                        </div>
+                        <div class="overlay">
+                            ${store ? `<span class="store-tag">${store}</span>` : ''}
+                            <div class="product-desc">${desc}</div>
+                        </div>
+                        <a href="${shopLink}" target="_blank" class="btn-shop">🛍️ COMPRAR AGORA</a>
+                    `;
+                    container.appendChild(card);
+                });
 
-                        section.innerHTML = `
-                            ${isImage ? `<img src="${videoUrl}">` : `
-                                <video loop playsinline muted src="${videoUrl}" onclick="toggleMute()"></video>
-                                <div class="mute-toggle" onclick="toggleMute()">
-                                    <i class="fas fa-volume-mute"></i>
-                                </div>
-                            `}
-                            <div class="side-actions">
-                                <button class="action-btn" onclick="this.querySelector('i').classList.toggle('active')">
-                                    <i class="fas fa-heart"></i><span>Amei</span>
-                                </button>
-                                <button class="action-btn" onclick="compartilhar()">
-                                    <i class="fas fa-share"></i><span>Enviar</span>
-                                </button>
-                            </div>
-                            <div class="overlay">
-                                ${store ? `<span class="store-tag">${store.toUpperCase()}</span>` : ''}
-                                <div class="product-desc">${desc}</div>
-                            </div>
-                            <a href="${shopLink}" target="_blank" class="btn-shop">🛍️ IR À LOJA</a>
-                        `;
-                        container.appendChild(section);
-                    } catch (lineErr) {
-                        console.warn("Pulei uma linha com erro:", lineErr);
-                    }
-                }
-
-                loading.style.display = 'none';
+                document.getElementById('loader').style.display = 'none';
                 container.style.display = 'block';
-                updatePlayback();
+                checkVideo();
 
             } catch (err) {
-                console.error("Erro Geral:", err);
-                document.getElementById('status-text').innerHTML = "Erro ao conectar.<br><button onclick='location.reload()' style='margin-top:10px; padding:10px; background:#FE2C55; color:white; border:none; border-radius:10px;'>Recarregar</button>";
+                document.getElementById('msg').innerHTML = "Erro de conexão.<br>Verifique se publicou a planilha.";
             }
         }
 
-        function toggleMute() {
+        function toggleAudio() {
             globalMuted = !globalMuted;
-            document.querySelectorAll('video').forEach(v => v.muted = globalM
+            document.querySelectorAll('video').forEach(v => v.muted = globalMuted);
+            document.querySelectorAll('.mute-toggle i').forEach(i => i.className = globalMuted ? 'fas fa-volume-mute' : 'fas fa-volume-up');
+        }
+
+        function checkVideo() {
+            document.querySelectorAll('video').forEach(v => {
+                const b = v.getBoundingClientRect();
+                if (b.top >= -200 && b.top <= 200) v.play().catch(()=>{});
+                else v.pause();
+            });
+        }
+
+        function setFilter(v, b) {
+            document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            filtrar();
+        }
+
+        function filtrar() {
+            const t = document.getElementById('searchInput').value.toLowerCase();
+            const f = document.querySelector('.filter-btn.active').innerText.toLowerCase().replace('m. livre', 'mercado livre');
+            
+            document.querySelectorAll('.video-card').forEach(c => {
+                const mS = f === 'todos' || c.dataset.store === f;
+                const mT = c.dataset.desc.includes(t) || c.dataset.category.includes(t);
+                c.style.display = (mS && mT) ? 'flex' : 'none';
+            });
+            document.getElementById('appContainer').scrollTop = 0;
+            checkVideo();
+        }
+
+        function share() { if(navigator.share) navigator.share({url: window.location.href}); }
+
+        document.getElementById('appContainer').addEventListener('scroll', () => {
+            clearTimeout(window.sc);
+            window.sc = setTimeout(checkVideo, 100);
+        });
+
+        init();
+    </script>
+</body>
+</html>
