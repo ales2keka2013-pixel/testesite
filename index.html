@@ -2,91 +2,168 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Achadinhos Vips | Feed de Vídeos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Achadinhos Vips | Estilo TikTok</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { height: 100%; overflow: hidden; background-color: #000; font-family: 'Segoe UI', sans-serif; color: white; }
-        .app-container { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; }
-        .video-card { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; background-color: #000; display: flex; align-items: center; justify-content: center; }
-        video { width: 100%; height: 100%; object-fit: cover; }
-        .side-bar { position: absolute; right: 15px; bottom: 160px; display: flex; flex-direction: column; gap: 20px; z-index: 15; }
-        .action-btn { display: flex; flex-direction: column; align-items: center; font-size: 12px; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
-        .action-btn i { font-size: 30px; margin-bottom: 5px; cursor: pointer; }
-        .action-btn i.liked { color: #FE2C55; }
-        .overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 10; }
-        .btn-shop { display: block; background: #FE2C55; color: white; text-align: center; padding: 15px; border-radius: 30px; text-decoration: none; font-weight: bold; width: 85%; margin: 10px auto 80px; }
-        .loading { display: flex; justify-content: center; align-items: center; height: 100vh; }
+        
+        body, html { 
+            height: 100%; 
+            background-color: #000; 
+            font-family: 'Segoe UI', sans-serif; 
+            overflow: hidden;
+            display: flex;
+            justify-content: center; /* Centraliza no PC */
+        }
+
+        /* Limita a largura no PC para parecer um celular */
+        .app-container { 
+            height: 100vh; 
+            width: 100%;
+            max-width: 500px; /* Largura máxima de um celular grande */
+            overflow-y: scroll; 
+            scroll-snap-type: y mandatory;
+            background: #000;
+            position: relative;
+        }
+
+        /* Esconder barra de rolagem */
+        .app-container::-webkit-scrollbar { display: none; }
+
+        .video-card { 
+            height: 100vh; 
+            width: 100%; 
+            scroll-snap-align: start; 
+            position: relative; 
+            overflow: hidden;
+        }
+
+        video { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; /* ESSENCIAL: Faz o vídeo preencher tudo sem sobrar espaço */
+        }
+
+        /* Overlay escuro no rodapé para ler melhor o texto */
+        .overlay { 
+            position: absolute; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%; 
+            padding: 20px 20px 100px 20px; 
+            background: linear-gradient(transparent, rgba(0,0,0,0.8)); 
+            z-index: 10; 
+            pointer-events: none; /* Deixa clicar no vídeo por trás */
+        }
+
+        .username { font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; }
+        .description { font-size: 0.9rem; color: #eee; }
+
+        /* Botões Laterais */
+        .side-bar { 
+            position: absolute; 
+            right: 15px; 
+            bottom: 180px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+            z-index: 15; 
+        }
+
+        .action-btn { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            color: white;
+            text-shadow: 1px 1px 5px rgba(0,0,0,0.5);
+        }
+
+        .action-btn i { font-size: 32px; cursor: pointer; }
+        .action-btn span { font-size: 12px; margin-top: 4px; }
+
+        /* Botão Ir para a Loja */
+        .btn-shop { 
+            position: absolute;
+            bottom: 85px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #FE2C55; 
+            color: white; 
+            text-align: center; 
+            padding: 14px; 
+            border-radius: 8px; 
+            text-decoration: none; 
+            font-weight: bold; 
+            width: 90%; 
+            z-index: 20;
+            pointer-events: auto;
+        }
+
+        .loading { display: flex; justify-content: center; align-items: center; height: 100vh; color: white; }
     </style>
 </head>
 <body>
 
-    <div id="loading" class="loading">Carregando seus vídeos...</div>
-    <div class="app-container" id="appContainer" style="display: none;"></div>
+    <div id="loading" class="loading">Carregando...</div>
+    
+    <div class="app-container" id="appContainer" style="display: none;">
+        </div>
 
     <script>
-        // ID extraído da sua folha de cálculo "teste"
         const SHEET_ID = '1817zpM3JYfKchLtHPOauozCcsVhDieTSs3QG5-5ZAVU';
-        const SHEET_NAME = 'Página1'; 
-        const API_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+        const API_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
-        async function carregarVideos() {
+        async function carregar() {
             try {
-                const response = await fetch(API_URL);
-                const text = await response.text();
-                const data = JSON.parse(text.substr(47).slice(0, -2));
-                const rows = data.table.rows;
+                const res = await fetch(API_URL);
+                const text = await res.text();
+                const json = JSON.parse(text.substr(47).slice(0, -2));
+                const rows = json.table.rows;
                 const container = document.getElementById('appContainer');
-                
-                rows.forEach((row) => {
-                    const video_url = row.c[0] ? row.c[0].v : '';
-                    const affiliate_url = row.c[1] ? row.c[1].v : '#';
-                    const username = row.c[2] ? row.c[2].v : 'achadinhos';
-                    const description = row.c[3] ? row.c[3].v : '';
 
-                    if (!video_url) return;
+                rows.forEach((row, index) => {
+                    const video = row.c[0]?.v;
+                    const link = row.c[1]?.v || '#';
+                    const user = row.c[2]?.v || 'achadinhos';
+                    const desc = row.c[3]?.v || '';
+
+                    if (!video || video.includes('.jpg')) return; // Pula se não for vídeo
 
                     const section = document.createElement('section');
                     section.className = 'video-card';
                     section.innerHTML = `
-                        <video loop playsinline src="${video_url}" onclick="togglePlay(this)"></video>
+                        <video loop playsinline src="${video}" onclick="this.paused ? this.play() : this.pause()"></video>
                         <div class="side-bar">
-                            <div class="action-btn" onclick="this.querySelector('i').classList.toggle('liked')">
-                                <i class="fas fa-heart"></i>
-                                <span>Amei</span>
-                            </div>
+                            <div class="action-btn"><i class="fas fa-heart" onclick="this.style.color='#FE2C55'"></i><span>1.2k</span></div>
+                            <div class="action-btn"><i class="fas fa-share"></i><span>Compartilhar</span></div>
                         </div>
                         <div class="overlay">
-                            <div style="font-weight:bold; margin-bottom:5px;">@${username}</div>
-                            <div style="font-size:14px; margin-bottom:15px;">${description}</div>
-                            <a href="${affiliate_url}" target="_blank" class="btn-shop">🛍️ Ir para a Loja</a>
+                            <div class="username">@${user}</div>
+                            <div class="description">${desc}</div>
                         </div>
+                        <a href="${link}" target="_blank" class="btn-shop">🛍️ IR PARA A LOJA</a>
                     `;
                     container.appendChild(section);
                 });
 
                 document.getElementById('loading').style.display = 'none';
                 container.style.display = 'block';
-                const vids = document.querySelectorAll('video');
-                if(vids[0]) vids[0].play();
-
-            } catch (error) {
-                document.getElementById('loading').innerText = "Erro ao carregar dados. Verifique se a folha de cálculo está pública.";
-            }
+                container.querySelector('video')?.play();
+            } catch (e) { console.error(e); }
         }
 
-        function togglePlay(vid) { vid.paused ? vid.play() : vid.pause(); }
-
+        // Auto-play ao scrollar
         document.getElementById('appContainer').addEventListener('scroll', () => {
-            const videos = document.querySelectorAll('video');
-            videos.forEach(v => {
+            const vids = document.querySelectorAll('video');
+            vids.forEach(v => {
                 const rect = v.getBoundingClientRect();
-                if (rect.top >= 0 && rect.top < window.innerHeight / 2) { v.play(); } else { v.pause(); }
+                if (rect.top >= 0 && rect.top < 100) v.play();
+                else v.pause();
             });
         });
 
-        carregarVideos();
+        carregar();
     </script>
 </body>
 </html>
