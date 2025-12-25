@@ -8,48 +8,52 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { height: 100%; background-color: #000; font-family: sans-serif; overflow: hidden; display: flex; justify-content: center; }
-        .app-container { height: 100vh; width: 100%; max-width: 500px; overflow-y: scroll; scroll-snap-type: y mandatory; position: relative; scroll-behavior: smooth; }
+        .app-container { height: 100vh; width: 100%; max-width: 500px; overflow-y: scroll; scroll-snap-type: y mandatory; position: relative; }
         .app-container::-webkit-scrollbar { display: none; }
-        .video-card { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; background: #000; }
-        video { width: 100%; height: 100%; object-fit: cover; }
-        .overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px 20px 100px 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 10; pointer-events: none; }
+        .video-card { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
+        video { width: 100%; height: 100%; object-fit: cover; background: #000; }
+        .overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px 20px 110px 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 10; pointer-events: none; }
         .side-bar { position: absolute; right: 15px; bottom: 180px; display: flex; flex-direction: column; gap: 20px; z-index: 15; }
         .action-btn { display: flex; flex-direction: column; align-items: center; color: white; text-shadow: 1px 1px 5px rgba(0,0,0,0.5); }
         .action-btn i { font-size: 32px; cursor: pointer; }
-        .btn-shop { position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%); background: #FE2C55; color: white; text-align: center; padding: 14px; border-radius: 8px; text-decoration: none; font-weight: bold; width: 90%; z-index: 20; }
-        .loading { display: flex; justify-content: center; align-items: center; height: 100vh; color: white; font-size: 18px; }
+        .btn-shop { position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%); background: #FE2C55; color: white; text-align: center; padding: 14px; border-radius: 8px; text-decoration: none; font-weight: bold; width: 90%; z-index: 20; text-transform: uppercase; }
+        .loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: #000; color: white; z-index: 100; }
     </style>
 </head>
 <body>
-    <div id="loading" class="loading">Carregando Achadinhos...</div>
+    <div id="loading" class="loading">Iniciando App...</div>
     <div class="app-container" id="appContainer" style="display: none;"></div>
 
     <script>
         const SHEET_ID = '1817zpM3JYfKchLtHPOauozCcsVhDieTSs3QG5-5ZAVU';
-        // URL da API do Google filtrando apenas as colunas que importam
-        const API_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+        // Usando o formato CSV para evitar bloqueios de API (CORS)
+        const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 
         async function carregar() {
             try {
-                const res = await fetch(API_URL);
-                const text = await res.text();
-                const json = JSON.parse(text.substr(47).slice(0, -2));
-                const rows = json.table.rows;
+                const res = await fetch(CSV_URL);
+                const csvText = await res.text();
+                
+                // Converte CSV em Array de Objetos
+                const rows = csvText.split('\n').slice(1); // Pula o cabeçalho
                 const container = document.getElementById('appContainer');
 
-                rows.forEach((row, index) => {
-                    // Coluna A: Video, Coluna B: Link, Coluna C: User, Coluna D: Desc
-                    let videoUrl = row.c[0]?.v || "";
-                    const shopLink = row.c[1]?.v || "#";
-                    const user = row.c[2]?.v || "achadinhos";
-                    const desc = row.c[3]?.v || "";
+                rows.forEach(row => {
+                    const columns = row.split(','); // Divide por vírgula
+                    if (columns.length < 2) return;
 
-                    // Se for link do Dropbox, corrige para link direto
+                    let videoUrl = columns[0]?.trim().replace(/"/g, "");
+                    const shopLink = columns[1]?.trim().replace(/"/g, "") || "#";
+                    const user = columns[2]?.trim().replace(/"/g, "") || "achadinhos";
+                    const desc = columns[3]?.trim().replace(/"/g, "") || "";
+
+                    // CORRETOR DE LINKS DROPBOX
                     if(videoUrl.includes("dropbox.com")) {
-                        videoUrl = videoUrl.replace("dl=0", "raw=1");
+                        videoUrl = videoUrl.replace("dl=0", "raw=1").replace("www.dropbox.com", "dl.dropboxusercontent.com");
                     }
-
-                    if (!videoUrl || videoUrl.includes(".jpg") || videoUrl.includes(".png")) return;
+                    
+                    // IGNORA SE NÃO FOR VÍDEO
+                    if (!videoUrl || videoUrl.includes(".jpg")) return;
 
                     const section = document.createElement('section');
                     section.className = 'video-card';
@@ -60,8 +64,8 @@
                             <div class="action-btn"><i class="fas fa-share"></i><span>Enviar</span></div>
                         </div>
                         <div class="overlay">
-                            <div style="font-weight:bold;">@${user}</div>
-                            <div>${desc}</div>
+                            <div style="font-weight:bold; font-size:18px;">@${user}</div>
+                            <div style="font-size:14px; margin-top:5px;">${desc}</div>
                         </div>
                         <a href="${shopLink}" target="_blank" class="btn-shop">🛍️ COMPRAR AGORA</a>
                     `;
@@ -70,22 +74,19 @@
 
                 document.getElementById('loading').style.display = 'none';
                 container.style.display = 'block';
-                
-                // Tenta dar play no primeiro vídeo após interação
-                setTimeout(() => { container.querySelector('video')?.play().catch(e => console.log("Auto-play barrado")); }, 1000);
 
-            } catch (e) { 
+            } catch (e) {
+                document.getElementById('loading').innerText = "Erro ao carregar dados. Planilha está pública?";
                 console.error(e);
-                document.getElementById('loading').innerText = "Erro: Verifique se a planilha está pública!";
             }
         }
 
-        // Troca de vídeo no scroll
+        // Play/Pause ao rolar
         document.getElementById('appContainer').addEventListener('scroll', () => {
             const vids = document.querySelectorAll('video');
             vids.forEach(v => {
                 const rect = v.getBoundingClientRect();
-                if (rect.top >= 0 && rect.top < 200) v.play();
+                if (rect.top >= 0 && rect.top < 300) v.play().catch(()=>{});
                 else v.pause();
             });
         });
