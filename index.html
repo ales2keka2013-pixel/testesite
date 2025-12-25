@@ -44,7 +44,7 @@
 
     <div id="loader">
         <div class="spin"></div>
-        <div id="statusText">Conectando...</div>
+        <div id="statusText">Buscando Ofertas...</div>
     </div>
 
     <div id="appContainer">
@@ -60,36 +60,37 @@
     </div>
 
     <script>
+        // Substitua APENAS o ID se necessário
         const SHEET_ID = '1817zpM3JYfKchLtHPOauozCcsVhDieTSs3QG5-5ZAVU';
-        // Cache-buster adicionado (?v=...) para evitar travamento de conexão
-        const DATA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0&v=${Math.random()}`;
+        
+        // Esta URL usa o formato de visualização do Google que dribla o erro de "Conectando"
+        const DATA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
         let globalMuted = true;
 
         async function init() {
-            const status = document.getElementById('statusText');
-            
             try {
                 const response = await fetch(DATA_URL);
-                if (!response.ok) throw new Error();
-                
                 const text = await response.text();
-                const rows = text.split('\n').slice(1).map(row => {
-                    return row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim());
-                });
+                
+                // O Google retorna um lixo de texto antes do JSON, precisamos limpar:
+                const jsonText = text.match(/google\.visualization\.Query\.setResponse\(([\s\S\w\W]*)\);/)[1];
+                const data = JSON.parse(jsonText);
+                const rows = data.table.rows;
 
                 const container = document.getElementById('appContainer');
 
-                rows.forEach(col => {
-                    if (!col[0] || col[0].length < 10) return;
+                rows.forEach(row => {
+                    const c = row.c;
+                    // Mapeamento das colunas: A=0, B=1, C=2, D=3, E=4, F=5, G=6
+                    if (!c[0] || !c[0].v) return;
 
-                    let videoUrl = col[0].replace("www.dropbox.com", "dl.dropboxusercontent.com").split('?')[0] + "?raw=1";
-                    const shopLink = col[1] || "#";
-                    const desc = col[3] || "Produto Vip";
-                    const store = (col[4] || "oferta").toLowerCase();
+                    let videoUrl = c[0].v.replace("www.dropbox.com", "dl.dropboxusercontent.com").split('?')[0] + "?raw=1";
+                    const shopLink = c[1] ? c[1].v : "#";
+                    const desc = c[3] ? c[3].v : "Produto Vip";
+                    const store = c[4] ? c[4].v.toLowerCase() : "oferta";
                     
-                    // Imagem da Coluna G (índice 6)
-                    let bannerImgUrl = (col[6]) ? col[6].trim() : "";
+                    let bannerImgUrl = (c[6] && c[6].v) ? c[6].v.trim() : "";
                     if (bannerImgUrl.includes("dropbox.com")) {
                         bannerImgUrl = bannerImgUrl.replace("www.dropbox.com", "dl.dropboxusercontent.com").split('?')[0] + "?raw=1";
                     }
@@ -125,7 +126,8 @@
                 checkVideo();
 
             } catch (err) {
-                status.innerText = "Verifique se a planilha está 'Publicada na Web'";
+                document.getElementById('statusText').innerHTML = "Erro de Sincronização.<br><small>Verifique se publicou a planilha em: Arquivo > Compartilhar > Publicar na Web</small>";
+                console.error(err);
             }
         }
 
@@ -154,3 +156,20 @@
             const f = document.querySelector('.filter-btn.active').innerText.toLowerCase().replace('m. livre', 'mercado livre');
             document.querySelectorAll('.video-card').forEach(c => {
                 const mS = f === 'todos' || c.dataset.store === f;
+                const mT = c.dataset.desc.includes(t);
+                c.style.display = (mS && mT) ? 'flex' : 'none';
+            });
+            document.getElementById('appContainer').scrollTop = 0;
+            checkVideo();
+        }
+
+        function share() { if(navigator.share) navigator.share({url: window.location.href}); }
+        document.getElementById('appContainer').addEventListener('scroll', () => {
+            clearTimeout(window.sc);
+            window.sc = setTimeout(checkVideo, 100);
+        });
+
+        init();
+    </script>
+</body>
+</html>
