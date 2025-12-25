@@ -8,10 +8,9 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { height: 100%; background-color: #000; font-family: sans-serif; overflow: hidden; display: flex; justify-content: center; }
-        .app-container { height: 100vh; width: 100%; max-width: 500px; overflow-y: scroll; scroll-snap-type: y mandatory; position: relative; background: #000; }
+        .app-container { height: 100vh; width: 100%; max-width: 500px; overflow-y: scroll; scroll-snap-type: y mandatory; position: relative; background: #000; scroll-behavior: smooth; }
         .app-container::-webkit-scrollbar { display: none; }
 
-        /* Menu Superior */
         .header-tools { 
             position: fixed; top: 0; width: 100%; max-width: 500px; z-index: 100; padding: 15px 0; 
             background: linear-gradient(rgba(0,0,0,0.9), transparent); display: flex; flex-direction: column; align-items: center;
@@ -21,35 +20,27 @@
         .filter-btn { flex: 1; margin: 0 3px; padding: 8px 0; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; color: white; font-size: 10px; cursor: pointer; text-align: center; }
         .filter-btn.active { background: #FE2C55; border-color: #FE2C55; font-weight: bold; }
 
-        /* Vídeos */
         .video-card { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; background: #000; }
-        video, img { width: 100%; height: auto; max-height: 100vh; object-fit: contain; }
+        video, img { width: 100%; height: 100%; object-fit: contain; background: #000; }
 
-        /* Botões Laterais */
         .side-actions { position: absolute; right: 15px; bottom: 180px; display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 30; }
         .action-btn { background: none; border: none; color: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; font-size: 11px; }
         .action-btn i { font-size: 30px; margin-bottom: 5px; }
         .action-btn i.active { color: #FE2C55; }
 
-        /* Overlay e Botão Compra */
         .overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px 20px 180px 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 10; pointer-events: none; }
         .btn-shop { position: absolute; bottom: 115px; left: 50%; transform: translateX(-50%); background: #FE2C55; color: white; text-align: center; padding: 16px; border-radius: 50px; text-decoration: none; font-weight: bold; width: 80%; z-index: 20; text-transform: uppercase; box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
 
-        /* Loading Screen */
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 200; }
-        .reload-btn { margin-top: 15px; padding: 10px 20px; border-radius: 20px; border: none; background: #FE2C55; color: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="loading">
-        <p>A sincronizar achadinhos...</p>
-        <button class="reload-btn" onclick="location.reload()">Recarregar Página</button>
-    </div>
+    <div id="loading"><p>Carregando vídeos...</p></div>
 
     <div class="app-container" id="appContainer" style="display: none;">
         <div class="header-tools">
-            <input type="text" class="search-bar" id="searchInput" placeholder="O que procuras?" oninput="filtrar()">
+            <input type="text" class="search-bar" id="searchInput" placeholder="O que você procura?" oninput="filtrar()">
             <div class="filter-group">
                 <button class="filter-btn active" onclick="setFilter('all', this)">Todos</button>
                 <button class="filter-btn" onclick="setFilter('Shopee', this)">Shopee</button>
@@ -61,12 +52,11 @@
 
     <script>
         const SHEET_ID = '1817zpM3JYfKchLtHPOauozCcsVhDieTSs3QG5-5ZAVU';
-        const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=tsv&gid=0&cache=` + new Date().getTime();
+        const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=tsv&gid=0&cache=${Date.now()}`;
 
         async function carregar() {
             try {
                 const res = await fetch(URL);
-                if (!res.ok) throw new Error("Erro ao aceder à planilha");
                 const tsv = await res.text();
                 const lines = tsv.split('\n');
                 const container = document.getElementById('appContainer');
@@ -91,7 +81,7 @@
                     section.dataset.desc = desc.toLowerCase();
 
                     section.innerHTML = `
-                        ${isImage ? `<img src="${vUrl}">` : `<video loop playsinline muted src="${vUrl}" onclick="this.muted=!this.muted; this.play();"></video>`}
+                        ${isImage ? `<img src="${vUrl}">` : `<video loop playsinline muted autoplay src="${vUrl}" onclick="toggleMute(this)"></video>`}
                         <div class="side-actions">
                             <button class="action-btn" onclick="this.querySelector('i').classList.toggle('active')">
                                 <i class="fas fa-heart"></i><span>Amei</span>
@@ -111,19 +101,39 @@
 
                 document.getElementById('loading').style.display = 'none';
                 container.style.display = 'block';
+                
+                // Inicia o primeiro vídeo manualmente
+                playVisibleVideos();
 
-            } catch (e) {
-                console.error(e);
-                document.getElementById('loading').innerHTML = `<p>Erro ao carregar os dados.</p><button class="reload-btn" onclick="location.reload()">Tentar Novamente</button>`;
+            } catch (e) { console.error(e); }
+        }
+
+        // Função para alternar som (Navegadores exigem interação do usuário para áudio)
+        function toggleMute(video) {
+            video.muted = !video.muted;
+            if (!video.muted) {
+                console.log("Áudio ativado pelo usuário");
             }
+        }
+
+        function playVisibleVideos() {
+            const container = document.getElementById('appContainer');
+            const videos = container.querySelectorAll('video');
+            
+            videos.forEach(v => {
+                const rect = v.getBoundingClientRect();
+                // Se o vídeo estiver visível na tela (com margem de erro)
+                if (rect.top >= -window.innerHeight / 2 && rect.top <= window.innerHeight / 2) {
+                    v.play().catch(error => console.log("Autoplay bloqueado aguardando clique."));
+                } else {
+                    v.pause();
+                }
+            });
         }
 
         function compartilhar(texto) {
             if (navigator.share) {
-                navigator.share({ title: 'Achadinho Vip!', text: texto, url: window.location.href });
-            } else {
-                navigator.clipboard.writeText(window.location.href);
-                alert("Link copiado!");
+                navigator.share({ title: 'Achadinho!', text: texto, url: window.location.href });
             }
         }
 
@@ -135,6 +145,7 @@
                 card.style.display = (search === 'all' || card.dataset.store === search) ? 'flex' : 'none';
             });
             document.getElementById('appContainer').scrollTop = 0;
+            setTimeout(playVisibleVideos, 100);
         }
 
         function filtrar() {
@@ -142,7 +153,14 @@
             document.querySelectorAll('.video-card').forEach(card => {
                 card.style.display = (card.dataset.desc.includes(search) || card.dataset.store.includes(search)) ? 'flex' : 'none';
             });
+            setTimeout(playVisibleVideos, 100);
         }
+
+        // Evento de Scroll para trocar o vídeo dando play/pause
+        document.getElementById('appContainer').addEventListener('scroll', () => {
+            clearTimeout(window.scrollTimeout);
+            window.scrollTimeout = setTimeout(playVisibleVideos, 100);
+        });
 
         carregar();
     </script>
