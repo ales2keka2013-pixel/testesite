@@ -8,63 +8,69 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { height: 100%; background-color: #000; font-family: sans-serif; overflow: hidden; display: flex; justify-content: center; }
-        .app-container { height: 100vh; width: 100%; max-width: 500px; overflow-y: scroll; scroll-snap-type: y mandatory; position: relative; }
+        .app-container { height: 100vh; width: 100%; max-width: 500px; overflow-y: scroll; scroll-snap-type: y mandatory; position: relative; scroll-behavior: smooth; }
         .app-container::-webkit-scrollbar { display: none; }
         .video-card { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px 20px 115px 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 10; pointer-events: none; }
+        .overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px 20px 115px 20px; background: linear-gradient(transparent, rgba(0,0,0,0.85)); z-index: 10; pointer-events: none; }
         .side-bar { position: absolute; right: 15px; bottom: 180px; display: flex; flex-direction: column; gap: 20px; z-index: 15; }
         .action-btn { display: flex; flex-direction: column; align-items: center; color: white; text-shadow: 1px 1px 5px rgba(0,0,0,0.5); font-size: 12px; }
         .action-btn i { font-size: 32px; cursor: pointer; margin-bottom: 5px; }
-        .btn-shop { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: #FE2C55; color: white; text-align: center; padding: 15px; border-radius: 10px; text-decoration: none; font-weight: bold; width: 90%; z-index: 20; text-transform: uppercase; }
-        .loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: #000; color: white; z-index: 100; }
+        .btn-shop { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: #FE2C55; color: white; text-align: center; padding: 15px; border-radius: 10px; text-decoration: none; font-weight: bold; width: 90%; z-index: 20; text-transform: uppercase; box-shadow: 0 4px 15px rgba(254, 44, 85, 0.3); }
+        .loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: #000; color: white; z-index: 100; font-size: 18px; }
     </style>
 </head>
 <body>
-    <div id="loading" class="loading">Sincronizando...</div>
+    <div id="loading" class="loading">Sincronizando vídeos novos...</div>
     <div class="app-container" id="appContainer" style="display: none;"></div>
 
     <script>
         const SHEET_ID = '1817zpM3JYfKchLtHPOauozCcsVhDieTSs3QG5-5ZAVU';
-        // Usando exportação CSV com cache busting (número aleatório no final)
-        const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&t=${new Date().getTime()}`;
+        // Usando formato TSV (Tabulação) para evitar conflito com vírgulas no texto
+        const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=tsv&t=${new Date().getTime()}`;
 
         async function carregar() {
             try {
                 const res = await fetch(URL);
-                const csv = await res.text();
-                const lines = csv.split('\n');
+                const tsv = await res.text();
+                const lines = tsv.split('\n');
                 const container = document.getElementById('appContainer');
+                container.innerHTML = ''; // Limpa antes de carregar
 
-                // Começa do 1 para pular o cabeçalho
                 for (let i = 1; i < lines.length; i++) {
-                    const col = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); // Split que respeita aspas
-                    if (col.length < 2) continue;
+                    const col = lines[i].split('\t'); // Divide por TAB (mais seguro)
+                    if (col.length < 1) continue;
 
-                    let videoUrl = col[0].replace(/"/g, "").trim();
-                    let shopLink = col[1].replace(/"/g, "").trim() || "#";
-                    let user = col[2]?.replace(/"/g, "").trim() || "achadinhos";
-                    let desc = col[3]?.replace(/"/g, "").trim() || "";
+                    let videoUrl = col[0]?.trim();
+                    let shopLink = col[1]?.trim() || "#";
+                    let user = col[2]?.trim() || "achadinhos";
+                    let desc = col[3]?.trim() || "";
 
-                    // Correção automática de links Dropbox
+                    // Se não houver URL de vídeo, pula
+                    if (!videoUrl || videoUrl === "") continue;
+
+                    // Corretor Universal Dropbox
                     if(videoUrl.includes("dropbox.com")) {
                         videoUrl = videoUrl.replace("www.dropbox.com", "dl.dropboxusercontent.com").replace("dl=0", "raw=1");
                     }
 
-                    // Pula se for imagem (JPG/PNG) ou estiver vazio
-                    if (!videoUrl || videoUrl.match(/\.(jpg|jpeg|png)$/i)) continue;
+                    // Se for imagem, vamos exibir como imagem, se for vídeo, como vídeo
+                    const isImage = videoUrl.match(/\.(jpg|jpeg|png|webp|gif)$/i);
 
                     const section = document.createElement('section');
                     section.className = 'video-card';
-                    section.innerHTML = `
-                        <video loop playsinline src="${videoUrl}" onclick="this.paused ? this.play() : this.pause()"></video>
+                    section.innerHTML = isImage ? 
+                    `<img src="${videoUrl}" style="width:100%; height:100%; object-fit:cover;">` :
+                    `<video loop playsinline src="${videoUrl}" onclick="this.paused ? this.play() : this.pause()"></video>`;
+                    
+                    section.innerHTML += `
                         <div class="side-bar">
-                            <div class="action-btn"><i class="fas fa-heart"></i><span>Amei</span></div>
-                            <div class="action-btn"><i class="fas fa-share"></i><span>Enviar</span></div>
+                            <div class="action-btn" onclick="this.querySelector('i').style.color='#FE2C55'"><i class="fas fa-heart"></i><span>Amei</span></div>
+                            <div class="action-btn" onclick="alert('Link copiado!')"><i class="fas fa-share"></i><span>Enviar</span></div>
                         </div>
                         <div class="overlay">
-                            <div style="font-weight:bold;">@${user}</div>
-                            <div style="font-size:14px;">${desc}</div>
+                            <div style="font-weight:bold; font-size:18px;">@${user}</div>
+                            <div style="font-size:14px; margin-top:5px;">${desc}</div>
                         </div>
                         <a href="${shopLink}" target="_blank" class="btn-shop">🛍️ COMPRAR AGORA</a>
                     `;
@@ -73,19 +79,22 @@
 
                 document.getElementById('loading').style.display = 'none';
                 container.style.display = 'block';
-                container.querySelector('video')?.play().catch(()=>{});
+                
+                // Tenta dar play no primeiro
+                const firstVid = container.querySelector('video');
+                if(firstVid) firstVid.play().catch(()=>{});
 
             } catch (e) {
-                document.getElementById('loading').innerText = "Erro ao carregar dados.";
+                document.getElementById('loading').innerText = "Erro na conexão.";
             }
         }
 
-        // Play/Pause ao rolar
+        // Lógica de Scroll (Play/Pause)
         document.getElementById('appContainer').addEventListener('scroll', () => {
             const vids = document.querySelectorAll('video');
             vids.forEach(v => {
                 const rect = v.getBoundingClientRect();
-                if (rect.top >= -50 && rect.top <= 50) v.play().catch(()=>{});
+                if (rect.top >= -100 && rect.top <= 100) v.play().catch(()=>{});
                 else v.pause();
             });
         });
