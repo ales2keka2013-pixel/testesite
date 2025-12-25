@@ -7,29 +7,29 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { height: 100%; background-color: #000; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden; display: flex; justify-content: center; }
+        body, html { height: 100%; background-color: #000; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; overflow: hidden; display: flex; justify-content: center; }
         
         .app-container { height: 100vh; width: 100%; max-width: 500px; overflow-y: scroll; scroll-snap-type: y mandatory; position: relative; }
         .app-container::-webkit-scrollbar { display: none; }
 
-        /* Cabeçalho Corrigido */
+        /* Cabeçalho Blindado contra Descentralização */
         .header-tools { 
             position: fixed; 
             top: 0; 
             width: 100%; 
             max-width: 500px; 
             z-index: 100; 
-            padding: 15px 10px; 
+            padding: 15px 5px; 
             background: linear-gradient(rgba(0,0,0,0.85), transparent);
             display: flex;
             flex-direction: column;
-            align-items: center; /* Centraliza tudo horizontalmente */
+            align-items: center; 
         }
 
         .search-bar { 
-            width: 92%; 
-            padding: 12px; 
-            border-radius: 25px; 
+            width: 90%; 
+            padding: 10px; 
+            border-radius: 20px; 
             border: 1px solid rgba(255,255,255,0.1); 
             background: rgba(255,255,255,0.15); 
             backdrop-filter: blur(15px); 
@@ -40,28 +40,28 @@
             font-size: 14px;
         }
         
-        /* Grupo de filtros com centralização forçada */
         .filter-group { 
             display: flex; 
-            gap: 6px; 
+            gap: 5px; 
             width: 100%;
-            justify-content: center; /* Isso centraliza os botões */
-            padding: 2px 10px;
-            flex-wrap: nowrap; /* Impede que quebrem linha */
+            justify-content: center; /* Centralização Absoluta */
+            flex-wrap: nowrap;
+            overflow: hidden; /* Proíbe o menu de "correr" para o lado */
         }
 
         .filter-btn { 
-            padding: 8px 12px; 
+            padding: 8px 10px; 
             background: rgba(255,255,255,0.1); 
             border: 1px solid rgba(255,255,255,0.2); 
             border-radius: 18px; 
             color: white; 
-            font-size: 11px; 
+            font-size: 10px; /* Reduzido levemente para caber tudo */
             white-space: nowrap; 
             cursor: pointer;
-            transition: all 0.2s ease;
+            min-width: 70px;
+            text-align: center;
         }
-        .filter-btn.active { background: #FE2C55; border-color: #FE2C55; font-weight: bold; transform: scale(1.05); }
+        .filter-btn.active { background: #FE2C55; border-color: #FE2C55; font-weight: bold; }
 
         .video-card { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
         video, img { width: 100%; height: auto; max-height: 100vh; object-fit: contain; }
@@ -77,35 +77,35 @@
             color: white; 
             text-align: center; 
             padding: 16px; 
-            border-radius: 50px; /* Mais arredondado estilo TikTok */
+            border-radius: 50px; 
             text-decoration: none; 
             font-weight: bold; 
             width: 80%; 
             z-index: 20; 
             text-transform: uppercase;
             box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-            font-size: 15px;
+            font-size: 14px;
         }
 
-        .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; z-index: 200; font-size: 14px;}
-        .reload-btn { margin-top: 15px; padding: 10px 20px; border-radius: 20px; border: none; background: #FE2C55; color: white; cursor: pointer; font-weight: bold;}
+        .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; z-index: 200;}
+        .reload-btn { margin-top: 15px; padding: 10px 20px; border-radius: 20px; border: none; background: #FE2C55; color: white; font-weight: bold;}
     </style>
 </head>
 <body>
 
     <div id="loading" class="loading">
-        <p>Buscando Achadinhos...</p>
+        <p>Sincronizando Achadinhos...</p>
         <button class="reload-btn" onclick="location.reload()">Recarregar</button>
     </div>
 
     <div class="app-container" id="appContainer" style="display: none;">
         <div class="header-tools">
-            <input type="text" class="search-bar" id="searchInput" placeholder="O que você está procurando?" oninput="filtrar()">
+            <input type="text" class="search-bar" id="searchInput" placeholder="Buscar produto ou loja..." oninput="filtrar()">
             <div class="filter-group">
                 <button class="filter-btn active" onclick="setFilter('all', this)">Todos</button>
                 <button class="filter-btn" onclick="setFilter('Shopee', this)">Shopee</button>
                 <button class="filter-btn" onclick="setFilter('Amazon', this)">Amazon</button>
-                <button class="filter-btn" onclick="setFilter('Mercado Livre', this)">Mercado Livre</button>
+                <button class="filter-btn" onclick="setFilter('Mercado Livre', this)">M. Livre</button>
             </div>
         </div>
     </div>
