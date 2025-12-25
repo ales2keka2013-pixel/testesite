@@ -140,3 +140,13 @@
             document.getElementById('appContainer').scrollTop = 0;
             checkVideo();
         }
+
+        document.getElementById('appContainer').addEventListener('scroll', () => {
+            clearTimeout(window.sc);
+            window.sc = setTimeout(checkVideo, 100);
+        });
+
+        init();
+    </script>
+</body>
+</html>
