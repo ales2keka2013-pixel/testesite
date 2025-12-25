@@ -12,78 +12,42 @@
         .app-container { height: 100vh; width: 100%; max-width: 500px; overflow-y: scroll; scroll-snap-type: y mandatory; position: relative; }
         .app-container::-webkit-scrollbar { display: none; }
 
-        /* HEADER TOTALMENTE TRAVADO */
         .header-tools { 
-            position: fixed; 
-            top: 0; 
-            width: 100%; 
-            max-width: 500px; 
-            z-index: 100; 
-            padding: 15px 0; /* Removido padding lateral para não empurrar */
-            background: linear-gradient(rgba(0,0,0,0.9), transparent);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            position: fixed; top: 0; width: 100%; max-width: 500px; z-index: 100; padding: 15px 0; 
+            background: linear-gradient(rgba(0,0,0,0.9), transparent); display: flex; flex-direction: column; align-items: center;
         }
 
         .search-bar { 
-            width: 90%; 
-            padding: 10px; 
-            border-radius: 20px; 
-            border: 1px solid rgba(255,255,255,0.1); 
-            background: rgba(255,255,255,0.2); 
-            color: white; 
-            outline: none; 
-            margin-bottom: 12px;
-            text-align: center;
+            width: 90%; padding: 10px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); 
+            background: rgba(255,255,255,0.2); color: white; outline: none; margin-bottom: 12px; text-align: center;
         }
         
-        /* Container de botões sem scroll e centralizado */
-        .filter-group { 
-            display: flex; 
-            width: 95%; /* Ocupa quase tudo, mas com margem */
-            justify-content: space-between; /* Distribui os botões igualmente */
-            align-items: center;
-            overflow: hidden; /* BLOQUEIA qualquer movimento lateral */
-        }
+        .filter-group { display: flex; width: 95%; justify-content: space-between; align-items: center; overflow: hidden; }
 
         .filter-btn { 
-            flex: 1; /* Faz todos os botões terem o mesmo tamanho */
-            margin: 0 3px;
-            padding: 8px 0; 
-            background: rgba(255,255,255,0.1); 
-            border: 1px solid rgba(255,255,255,0.2); 
-            border-radius: 15px; 
-            color: white; 
-            font-size: 10px; 
-            white-space: nowrap; 
-            cursor: pointer;
-            text-align: center;
-            transition: background 0.3s;
+            flex: 1; margin: 0 3px; padding: 8px 0; background: rgba(255,255,255,0.1); 
+            border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; color: white; font-size: 10px; 
+            white-space: nowrap; cursor: pointer; text-align: center;
         }
         .filter-btn.active { background: #FE2C55; border-color: #FE2C55; font-weight: bold; }
 
         .video-card { height: 100vh; width: 100%; scroll-snap-align: start; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
         video, img { width: 100%; height: auto; max-height: 100vh; object-fit: contain; }
 
+        /* Barra Lateral de Ações */
+        .side-actions {
+            position: absolute; right: 15px; bottom: 180px; display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 30;
+        }
+        .action-btn { background: none; border: none; color: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; font-size: 11px; }
+        .action-btn i { font-size: 30px; margin-bottom: 5px; transition: transform 0.2s; }
+        .action-btn i.active { color: #FE2C55; }
+        .action-btn:active i { transform: scale(1.3); }
+
         .overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px 20px 180px 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); z-index: 10; pointer-events: none; }
-        
         .btn-shop { 
-            position: absolute; 
-            bottom: 115px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            background: #FE2C55; 
-            color: white; 
-            text-align: center; 
-            padding: 16px; 
-            border-radius: 50px; 
-            text-decoration: none; 
-            font-weight: bold; 
-            width: 80%; 
-            z-index: 20; 
-            text-transform: uppercase;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            position: absolute; bottom: 115px; left: 50%; transform: translateX(-50%); 
+            background: #FE2C55; color: white; text-align: center; padding: 16px; border-radius: 50px; 
+            text-decoration: none; font-weight: bold; width: 80%; z-index: 20; text-transform: uppercase; box-shadow: 0 8px 20px rgba(0,0,0,0.5);
         }
 
         .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; }
@@ -95,7 +59,7 @@
 
     <div class="app-container" id="appContainer" style="display: none;">
         <div class="header-tools">
-            <input type="text" class="search-bar" id="searchInput" placeholder="O que você busca?" oninput="filtrar()">
+            <input type="text" class="search-bar" id="searchInput" placeholder="Buscar produto..." oninput="filtrar()">
             <div class="filter-group">
                 <button class="filter-btn active" onclick="setFilter('all', this)">Todos</button>
                 <button class="filter-btn" onclick="setFilter('Shopee', this)">Shopee</button>
@@ -128,6 +92,7 @@
 
                     const store = (col[4] || "").trim();
                     const desc = (col[3] || "").trim();
+                    const shopLink = (col[1] || "#").trim();
                     const isImage = vUrl.match(/\.(jpg|jpeg|png|webp|gif)$/i);
 
                     const section = document.createElement('section');
@@ -137,11 +102,23 @@
 
                     section.innerHTML = `
                         ${isImage ? `<img src="${vUrl}">` : `<video loop playsinline muted src="${vUrl}" onclick="this.muted=!this.muted; this.play();"></video>`}
+                        
+                        <div class="side-actions">
+                            <button class="action-btn" onclick="curtir(this)">
+                                <i class="fas fa-heart"></i>
+                                <span>Amei</span>
+                            </button>
+                            <button class="action-btn" onclick="compartilhar('${desc}', '${shopLink}')">
+                                <i class="fas fa-share"></i>
+                                <span>Enviar</span>
+                            </button>
+                        </div>
+
                         <div class="overlay">
                             <div style="font-weight:bold; font-size:16px;">@${col[2] || 'achadinhos'} ${store ? '• '+store : ''}</div>
                             <div style="font-size:13px; margin-top:5px; color:#efefef;">${desc}</div>
                         </div>
-                        <a href="${col[1] || '#'}" target="_blank" class="btn-shop">🛍️ IR À LOJA</a>
+                        <a href="${shopLink}" target="_blank" class="btn-shop">🛍️ IR À LOJA</a>
                     `;
                     container.appendChild(section);
                 }
@@ -149,6 +126,26 @@
                 document.getElementById('loading').style.display = 'none';
                 container.style.display = 'block';
             } catch (e) { console.error(e); }
+        }
+
+        function curtir(btn) {
+            const icon = btn.querySelector('i');
+            icon.classList.toggle('active');
+            icon.classList.toggle('fas'); // Coração cheio
+            icon.classList.toggle('far'); // Coração vazio
+        }
+
+        function compartilhar(texto, link) {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Achadinho Vip!',
+                    text: texto,
+                    url: window.location.href // Envia o link do seu SITE
+                }).catch(console.error);
+            } else {
+                alert("Link do site copiado para compartilhar!");
+                navigator.clipboard.writeText(window.location.href);
+            }
         }
 
         function setFilter(store, btn) {
@@ -163,20 +160,3 @@
             document.querySelectorAll('.video-card').forEach(card => {
                 const matchesStore = currentFilter === 'all' || card.dataset.store === currentFilter;
                 const matchesSearch = card.dataset.desc.includes(search) || card.dataset.store.includes(search);
-                card.style.display = (matchesStore && matchesSearch) ? 'flex' : 'none';
-            });
-            document.getElementById('appContainer').scrollTop = 0;
-        }
-
-        document.getElementById('appContainer').addEventListener('scroll', () => {
-            document.querySelectorAll('.video-card:not([style*="display: none"]) video').forEach(v => {
-                const rect = v.getBoundingClientRect();
-                if (rect.top >= -150 && rect.top <= 150) v.play().catch(()=>{});
-                else v.pause();
-            });
-        });
-
-        carregar();
-    </script>
-</body>
-</html>
