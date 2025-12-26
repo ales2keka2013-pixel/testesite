@@ -9,34 +9,20 @@
     
     <style>
         :root { --accent: #D4AF37; --bg: #000; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow: hidden; color: white; }
-        
-        /* Proteção Visual do Logotipo */
-        .brand-top { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); font-size: 22px; font-weight: bold; letter-spacing: 5px; z-index: 100; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); color: white; pointer-events: none; }
-
-        /* Container de Vídeos */
-        #appContainer { height: 100vh; overflow-y: auto; scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); font-family: sans-serif; overflow: hidden; color: white; }
+        .brand-top { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); font-size: 22px; font-weight: bold; letter-spacing: 5px; z-index: 100; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
+        #appContainer { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; display: none; }
         .video-card { height: 100vh; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; background: #000; }
         video { width: 100%; height: 100%; object-fit: cover; }
-
-        /* Ações Laterais (Curtida) */
-        .side-actions { position: absolute; right: 15px; bottom: 180px; display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 10; }
-        .like-btn { background: none; border: none; color: white; font-size: 40px; cursor: pointer; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); transition: 0.3s; }
-        .like-btn.active { color: #ff0050; transform: scale(1.1); }
-
-        /* Banner de Compra */
-        .product-banner { position: absolute; bottom: 30px; left: 15px; right: 15px; background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 15px; display: flex; align-items: center; text-decoration: none; color: black; z-index: 10; animation: slideUp 0.5s ease; }
-        .product-info { flex: 1; font-weight: bold; font-size: 14px; margin-right: 10px; }
-        .buy-btn { background: #000; color: #fff; padding: 10px 20px; border-radius: 25px; font-weight: 900; font-size: 12px; }
-
-        /* Tela de Login/Cadastro (Sobreposição) */
-        #authContainer { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px; backdrop-filter: blur(10px); }
+        .side-actions { position: absolute; right: 15px; bottom: 180px; display: flex; flex-direction: column; gap: 20px; z-index: 10; }
+        .like-btn { background: none; border: none; color: white; font-size: 40px; cursor: pointer; }
+        .like-btn.active { color: #ff0050; }
+        .product-banner { position: absolute; bottom: 30px; left: 15px; right: 15px; background: white; border-radius: 15px; padding: 15px; display: flex; align-items: center; text-decoration: none; color: black; z-index: 10; }
+        .buy-btn { background: #000; color: #fff; padding: 10px 20px; border-radius: 25px; font-weight: bold; margin-left: auto; }
+        #authContainer { position: fixed; inset: 0; z-index: 9999; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px; }
         .auth-box { width: 100%; max-width: 320px; text-align: center; }
-        .auth-box h2 { color: var(--accent); margin-bottom: 20px; font-size: 18px; line-height: 1.4; }
-        .auth-box input { width: 100%; padding: 15px; margin: 8px 0; border-radius: 10px; border: 1px solid #333; background: #111; color: white; box-sizing: border-box; font-size: 16px; }
-        .auth-box button { width: 100%; padding: 15px; background: var(--accent); border: none; border-radius: 10px; font-weight: bold; margin-top: 15px; cursor: pointer; font-size: 16px; }
-        
-        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        input { width: 100%; padding: 15px; margin: 8px 0; border-radius: 10px; border: 1px solid #333; background: #111; color: white; box-sizing: border-box; }
+        button#btnEntrar { width: 100%; padding: 15px; background: var(--accent); border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -45,52 +31,44 @@
 
     <div id="authContainer">
         <div class="auth-box">
-            <h1 style="letter-spacing: 5px; color: white; margin-bottom: 5px;">DALUXE</h1>
-            <h2 id="authTitle">Crie sua conta VIP para continuar assistindo e salvar seus achados!</h2>
-            <input type="email" id="email" placeholder="Seu melhor e-mail">
-            <input type="password" id="password" placeholder="Crie uma senha">
-            <button onclick="handleAuth()">LIBERAR ACESSO AGORA</button>
-            <p style="font-size: 12px; color: #666; margin-top: 15px;">Ao clicar, você concorda com nossos termos.</p>
+            <h1 style="color:var(--accent); letter-spacing:5px;">DALUXE</h1>
+            <p id="authTitle">Crie sua conta VIP para continuar</p>
+            <input type="email" id="email" placeholder="E-mail">
+            <input type="password" id="password" placeholder="Senha">
+            <button id="btnEntrar" onclick="handleAuth()">ENTRAR / CADASTRAR</button>
         </div>
     </div>
 
     <div id="appContainer"></div>
 
     <script>
-        // --- 1. CONFIGURAÇÕES SUPABASE ---
-        const SUPABASE_URL = 'SUA_URL_AQUI'; // <--- COLOQUE SUA URL AQUI
-        const SUPABASE_KEY = 'SUA_KEY_AQUI'; // <--- COLOQUE SUA ANON KEY AQUI
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        // --- 2. CONFIGURAÇÕES PLANILHA ---
+        // ======= CONFIGURAÇÃO OBRIGATÓRIA =======
+        const SUPABASE_URL = 'https://fumbnqnjhreauxtnrufv.supabase.co'; 
+        const SUPABASE_KEY = 'sb_secret_R8vzt2rPLdGPq6ttS0ZhEw_zkMv6WVs';
         const SHEET_ID = '1817zpM3JYfKchLtHPOauozCcsVhDieTSs3QG5-5ZAVU';
+        // ========================================
+
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         const DATA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
         let currentUser = null;
         let videosVistos = new Set();
-        const LIMITE_VIDEOS = 10;
-
-        // Proteção contra Cópia (Bloqueia clique direito)
-        document.addEventListener('contextmenu', e => e.preventDefault());
 
         async function checkUser() {
-            const { data: { user } } = await _supabase.auth.getUser();
-            currentUser = user;
-            loadVideos();
+            try {
+                const { data: { user } } = await _supabase.auth.getUser();
+                currentUser = user;
+                loadVideos();
+            } catch (e) { loadVideos(); } // Se falhar o auth, carrega vídeos igual
         }
 
         async function loadVideos() {
+            document.getElementById('appContainer').style.display = 'block';
             try {
                 const response = await fetch(DATA_URL);
                 const text = await response.text();
                 const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S\w\W]*)\);/)[1]);
                 const rows = json.table.rows.slice(1);
-
-                let likedUrls = new Set();
-                if (currentUser) {
-                    const { data: myLikes } = await _supabase.from('curtidas').select('video_url');
-                    if (myLikes) likedUrls = new Set(myLikes.map(l => l.video_url));
-                }
 
                 const container = document.getElementById('appContainer');
                 rows.forEach((row, index) => {
@@ -99,26 +77,25 @@
                     const desc = row.c[3]?.v || "Ver Produto";
                     if (!videoUrl) return;
 
-                    const isLiked = likedUrls.has(videoUrl);
                     const card = document.createElement('div');
                     card.className = 'video-card';
                     card.dataset.index = index;
                     card.innerHTML = `
                         <video loop playsinline muted src="${videoUrl}"></video>
                         <div class="side-actions">
-                            <button class="like-btn ${isLiked ? 'active' : ''}" onclick="event.stopPropagation(); handleLikeClick(this, '${videoUrl}')">
+                            <button class="like-btn" onclick="handleLikeClick(this, '${videoUrl}')">
                                 <i class="fas fa-heart"></i>
                             </button>
                         </div>
                         <a href="${shopLink}" target="_blank" class="product-banner">
-                            <div class="product-info">${desc}</div>
+                            <span style="font-weight:bold">${desc}</span>
                             <div class="buy-btn">EU QUERO</div>
                         </a>
                     `;
                     container.appendChild(card);
                 });
                 startObservers();
-            } catch (e) { console.error("Erro ao carregar:", e); }
+            } catch (e) { console.error("Erro Planilha:", e); }
         }
 
         function startObservers() {
@@ -126,64 +103,39 @@
             const observer = new IntersectionObserver(entries => {
                 entries.forEach(e => {
                     if (e.isIntersecting) {
-                        const video = e.target;
-                        const idx = parseInt(video.parentElement.dataset.index);
-                        
-                        // Verificar limite para usuários não logados
-                        if (!currentUser && videosVistos.size >= LIMITE_VIDEOS && !videosVistos.has(idx)) {
-                            video.pause();
-                            mostrarLogin();
-                            return;
+                        const idx = parseInt(e.target.parentElement.dataset.index);
+                        if (!currentUser && videosVistos.size >= 10 && !videosVistos.has(idx)) {
+                            document.getElementById('authContainer').style.display = 'flex';
+                            document.getElementById('appContainer').style.overflowY = 'hidden';
+                            e.target.pause();
+                        } else {
+                            e.target.play().catch(()=>{});
+                            videosVistos.add(idx);
                         }
-
-                        video.play().catch(() => {});
-                        videosVistos.add(idx);
-                    } else {
-                        e.target.pause();
-                    }
+                    } else { e.target.pause(); }
                 });
             }, { threshold: 0.6 });
-
             videos.forEach(v => {
                 observer.observe(v);
                 v.addEventListener('click', () => v.muted = !v.muted);
             });
         }
 
-        function mostrarLogin() {
-            document.getElementById('authContainer').style.display = 'flex';
-            document.getElementById('appContainer').style.overflowY = 'hidden';
-        }
-
         async function handleAuth() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-
-            if(!email || !password) { alert("Preencha todos os campos."); return; }
-
-            // Tenta logar, se não conseguir, cadastra
-            let { error: signInError } = await _supabase.auth.signInWithPassword({ email, password });
-            if (signInError) {
-                let { error: signUpError } = await _supabase.auth.signUp({ email, password });
-                if (signUpError) alert(signUpError.message);
-                else { alert("Conta criada com sucesso!"); location.reload(); }
-            } else {
-                location.reload();
-            }
+            const { error } = await _supabase.auth.signInWithPassword({ email, password });
+            if (error) {
+                const { error: signUpError } = await _supabase.auth.signUp({ email, password });
+                if (signUpError) alert("Erro: " + signUpError.message);
+                else { alert("Conta criada! Site liberado."); location.reload(); }
+            } else { location.reload(); }
         }
 
-        async function handleLikeClick(btn, url) {
-            if (!currentUser) {
-                mostrarLogin();
-                return;
-            }
-            if (btn.classList.contains('active')) {
-                await _supabase.from('curtidas').delete().eq('user_id', currentUser.id).eq('video_url', url);
-                btn.classList.remove('active');
-            } else {
-                await _supabase.from('curtidas').insert({ user_id: currentUser.id, video_url: url });
-                btn.classList.add('active');
-            }
+        function handleLikeClick(btn, url) {
+            if (!currentUser) { document.getElementById('authContainer').style.display = 'flex'; return; }
+            btn.classList.toggle('active');
+            _supabase.from('curtidas').insert({ user_id: currentUser.id, video_url: url });
         }
 
         window.onload = checkUser;
