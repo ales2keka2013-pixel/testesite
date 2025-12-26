@@ -3,121 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Daluxe - VIP</title>
+    <title>Daluxe - Achados VIP</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
         :root { --accent: #D4AF37; --bg: #000; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); font-family: sans-serif; overflow: hidden; color: white; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow: hidden; color: white; }
         
-        /* Telas */
-        #authContainer { position: fixed; inset: 0; z-index: 9999; background: var(--bg); display: flex; align-items: center; justify-content: center; text-align: center; }
-        #appContainer { display: none; height: 100vh; overflow-y: snap; scroll-snap-type: y mandatory; }
-        
-        /* Video Card */
-        .video-card { height: 100vh; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; }
+        /* Proteção Visual do Logotipo */
+        .brand-top { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); font-size: 22px; font-weight: bold; letter-spacing: 5px; z-index: 100; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); color: white; pointer-events: none; }
+
+        /* Container de Vídeos */
+        #appContainer { height: 100vh; overflow-y: auto; scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch; }
+        .video-card { height: 100vh; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; background: #000; }
         video { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Ações Laterais (Curtida) */
+        .side-actions { position: absolute; right: 15px; bottom: 180px; display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 10; }
+        .like-btn { background: none; border: none; color: white; font-size: 40px; cursor: pointer; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); transition: 0.3s; }
+        .like-btn.active { color: #ff0050; transform: scale(1.1); }
+
+        /* Banner de Compra */
+        .product-banner { position: absolute; bottom: 30px; left: 15px; right: 15px; background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 15px; display: flex; align-items: center; text-decoration: none; color: black; z-index: 10; animation: slideUp 0.5s ease; }
+        .product-info { flex: 1; font-weight: bold; font-size: 14px; margin-right: 10px; }
+        .buy-btn { background: #000; color: #fff; padding: 10px 20px; border-radius: 25px; font-weight: 900; font-size: 12px; }
+
+        /* Tela de Login/Cadastro (Sobreposição) */
+        #authContainer { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px; backdrop-filter: blur(10px); }
+        .auth-box { width: 100%; max-width: 320px; text-align: center; }
+        .auth-box h2 { color: var(--accent); margin-bottom: 20px; font-size: 18px; line-height: 1.4; }
+        .auth-box input { width: 100%; padding: 15px; margin: 8px 0; border-radius: 10px; border: 1px solid #333; background: #111; color: white; box-sizing: border-box; font-size: 16px; }
+        .auth-box button { width: 100%; padding: 15px; background: var(--accent); border: none; border-radius: 10px; font-weight: bold; margin-top: 15px; cursor: pointer; font-size: 16px; }
         
-        /* Botão Curtir */
-        .side-actions { position: absolute; right: 15px; bottom: 150px; display: flex; flex-direction: column; gap: 20px; }
-        .like-btn { background: none; border: none; color: white; font-size: 35px; cursor: pointer; transition: 0.3s; }
-        .like-btn.active { color: #ff0050; transform: scale(1.2); }
-
-        /* Banner Produto */
-        .product-banner { position: absolute; bottom: 30px; left: 15px; right: 15px; background: white; border-radius: 15px; padding: 12px; display: flex; align-items: center; text-decoration: none; color: black; }
-        .buy-btn { background: var(--bg); color: white; padding: 10px 20px; border-radius: 20px; font-weight: bold; margin-left: auto; }
-
-        /* Inputs Login */
-        .auth-box input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: 1px solid #333; background: #111; color: white; box-sizing: border-box; }
-        .auth-box button { width: 100%; padding: 14px; background: var(--accent); border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body>
 
+    <div class="brand-top">DALUXE</div>
+
     <div id="authContainer">
-        <div class="auth-box" style="width: 80%; max-width: 300px;">
-            <h1 style="letter-spacing: 5px; color: var(--accent);">DALUXE</h1>
-            <input type="email" id="email" placeholder="E-mail">
-            <input type="password" id="password" placeholder="Senha">
-            <button onclick="handleAuth()">ENTRAR / CADASTRAR</button>
+        <div class="auth-box">
+            <h1 style="letter-spacing: 5px; color: white; margin-bottom: 5px;">DALUXE</h1>
+            <h2 id="authTitle">Crie sua conta VIP para continuar assistindo e salvar seus achados!</h2>
+            <input type="email" id="email" placeholder="Seu melhor e-mail">
+            <input type="password" id="password" placeholder="Crie uma senha">
+            <button onclick="handleAuth()">LIBERAR ACESSO AGORA</button>
+            <p style="font-size: 12px; color: #666; margin-top: 15px;">Ao clicar, você concorda com nossos termos.</p>
         </div>
     </div>
 
     <div id="appContainer"></div>
 
     <script>
-        const SUPABASE_URL = 'SUA_URL_AQUI';
-        const SUPABASE_KEY = 'SUA_KEY_AQUI';
+        // --- 1. CONFIGURAÇÕES SUPABASE ---
+        const SUPABASE_URL = 'SUA_URL_AQUI'; // <--- COLOQUE SUA URL AQUI
+        const SUPABASE_KEY = 'SUA_KEY_AQUI'; // <--- COLOQUE SUA ANON KEY AQUI
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // --- 2. CONFIGURAÇÕES PLANILHA ---
         const SHEET_ID = '1817zpM3JYfKchLtHPOauozCcsVhDieTSs3QG5-5ZAVU';
         const DATA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
         let currentUser = null;
+        let videosVistos = new Set();
+        const LIMITE_VIDEOS = 10;
+
+        // Proteção contra Cópia (Bloqueia clique direito)
+        document.addEventListener('contextmenu', e => e.preventDefault());
+
+        async function checkUser() {
+            const { data: { user } } = await _supabase.auth.getUser();
+            currentUser = user;
+            loadVideos();
+        }
+
+        async function loadVideos() {
+            try {
+                const response = await fetch(DATA_URL);
+                const text = await response.text();
+                const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S\w\W]*)\);/)[1]);
+                const rows = json.table.rows.slice(1);
+
+                let likedUrls = new Set();
+                if (currentUser) {
+                    const { data: myLikes } = await _supabase.from('curtidas').select('video_url');
+                    if (myLikes) likedUrls = new Set(myLikes.map(l => l.video_url));
+                }
+
+                const container = document.getElementById('appContainer');
+                rows.forEach((row, index) => {
+                    const videoUrl = row.c[0]?.v;
+                    const shopLink = row.c[1]?.v || "#";
+                    const desc = row.c[3]?.v || "Ver Produto";
+                    if (!videoUrl) return;
+
+                    const isLiked = likedUrls.has(videoUrl);
+                    const card = document.createElement('div');
+                    card.className = 'video-card';
+                    card.dataset.index = index;
+                    card.innerHTML = `
+                        <video loop playsinline muted src="${videoUrl}"></video>
+                        <div class="side-actions">
+                            <button class="like-btn ${isLiked ? 'active' : ''}" onclick="event.stopPropagation(); handleLikeClick(this, '${videoUrl}')">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                        <a href="${shopLink}" target="_blank" class="product-banner">
+                            <div class="product-info">${desc}</div>
+                            <div class="buy-btn">EU QUERO</div>
+                        </a>
+                    `;
+                    container.appendChild(card);
+                });
+                startObservers();
+            } catch (e) { console.error("Erro ao carregar:", e); }
+        }
+
+        function startObservers() {
+            const videos = document.querySelectorAll('video');
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(e => {
+                    if (e.isIntersecting) {
+                        const video = e.target;
+                        const idx = parseInt(video.parentElement.dataset.index);
+                        
+                        // Verificar limite para usuários não logados
+                        if (!currentUser && videosVistos.size >= LIMITE_VIDEOS && !videosVistos.has(idx)) {
+                            video.pause();
+                            mostrarLogin();
+                            return;
+                        }
+
+                        video.play().catch(() => {});
+                        videosVistos.add(idx);
+                    } else {
+                        e.target.pause();
+                    }
+                });
+            }, { threshold: 0.6 });
+
+            videos.forEach(v => {
+                observer.observe(v);
+                v.addEventListener('click', () => v.muted = !v.muted);
+            });
+        }
+
+        function mostrarLogin() {
+            document.getElementById('authContainer').style.display = 'flex';
+            document.getElementById('appContainer').style.overflowY = 'hidden';
+        }
 
         async function handleAuth() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
-            // Tenta login, se falhar tenta cadastro
-            let { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-            if (error) {
-                let { data: upData, error: upError } = await _supabase.auth.signUp({ email, password });
-                if (upError) alert(upError.message);
-                else alert("Conta criada! Clique em Entrar novamente.");
+            if(!email || !password) { alert("Preencha todos os campos."); return; }
+
+            // Tenta logar, se não conseguir, cadastra
+            let { error: signInError } = await _supabase.auth.signInWithPassword({ email, password });
+            if (signInError) {
+                let { error: signUpError } = await _supabase.auth.signUp({ email, password });
+                if (signUpError) alert(signUpError.message);
+                else { alert("Conta criada com sucesso!"); location.reload(); }
             } else {
-                checkUser();
+                location.reload();
             }
         }
 
-        async function checkUser() {
-            const { data: { user } } = await _supabase.auth.getUser();
-            if (user) {
-                currentUser = user;
-                document.getElementById('authContainer').style.display = 'none';
-                document.getElementById('appContainer').style.display = 'block';
-                loadVideos();
+        async function handleLikeClick(btn, url) {
+            if (!currentUser) {
+                mostrarLogin();
+                return;
             }
-        }
-
-        async function loadVideos() {
-            const response = await fetch(DATA_URL);
-            const text = await response.text();
-            const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S\w\W]*)\);/)[1]);
-            const rows = json.table.rows.slice(1);
-
-            // Busca as curtidas do usuário no Supabase
-            const { data: myLikes } = await _supabase.from('curtidas').select('video_url');
-            const likedUrls = new Set(myLikes.map(l => l.video_url));
-
-            const container = document.getElementById('appContainer');
-            rows.forEach(row => {
-                const videoUrl = row.c[0]?.v;
-                const shopLink = row.c[1]?.v || "#";
-                const desc = row.c[3]?.v || "Ver Produto";
-                if (!videoUrl) return;
-
-                const isLiked = likedUrls.has(videoUrl);
-                const card = document.createElement('div');
-                card.className = 'video-card';
-                card.innerHTML = `
-                    <video loop playsinline muted src="${videoUrl}"></video>
-                    <div class="side-actions">
-                        <button class="like-btn ${isLiked ? 'active' : ''}" onclick="toggleLike(this, '${videoUrl}')">
-                            <i class="fas fa-heart"></i>
-                        </button>
-                    </div>
-                    <a href="${shopLink}" target="_blank" class="product-banner">
-                        <span>${desc}</span>
-                        <div class="buy-btn">COMPRAR</div>
-                    </a>
-                `;
-                container.appendChild(card);
-            });
-            startObservers();
-        }
-
-        async function toggleLike(btn, url) {
             if (btn.classList.contains('active')) {
                 await _supabase.from('curtidas').delete().eq('user_id', currentUser.id).eq('video_url', url);
                 btn.classList.remove('active');
@@ -125,20 +184,6 @@
                 await _supabase.from('curtidas').insert({ user_id: currentUser.id, video_url: url });
                 btn.classList.add('active');
             }
-        }
-
-        function startObservers() {
-            const videos = document.querySelectorAll('video');
-            const observer = new IntersectionObserver(entries => {
-                entries.forEach(e => {
-                    if (e.isIntersecting) e.target.play();
-                    else e.target.pause();
-                });
-            }, { threshold: 0.6 });
-            videos.forEach(v => {
-                observer.observe(v);
-                v.addEventListener('click', () => v.muted = !v.muted);
-            });
         }
 
         window.onload = checkUser;
