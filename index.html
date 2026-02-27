@@ -14,10 +14,6 @@ body {
   padding: 20px;
 }
 
-h2 {
-  text-align: center;
-}
-
 .form-box {
   background: white;
   padding: 20px;
@@ -90,6 +86,7 @@ button:hover {
 </select>
 
 <select id="preco">
+  <option value="">Faixa de preço</option>
   <option value="100">Até R$100</option>
   <option value="200">Até R$200</option>
   <option value="500">Até R$500</option>
@@ -115,6 +112,15 @@ async function buscar() {
   let categoria = document.getElementById("categoria").value
   let preco = parseInt(document.getElementById("preco").value)
 
+  let resultado = document.getElementById("resultado")
+  resultado.innerHTML = ""
+
+  // 🔎 Validação
+  if (!idade || !genero || !categoria || !preco) {
+    resultado.innerHTML = "<p>Preencha todos os campos.</p>"
+    return
+  }
+
   const { data, error } = await supabase
     .from('produtos')
     .select('*')
@@ -122,22 +128,22 @@ async function buscar() {
     .gte('idade_max', idade)
     .lte('preco_max', preco)
     .eq('categoria', categoria)
+    .in('genero', [genero, 'unissex'])
     .order('preco_max', { ascending: true })
     .limit(5)
 
-  let resultado = document.getElementById("resultado")
-  resultado.innerHTML = ""
+  if (error) {
+    resultado.innerHTML = "<p>Erro ao buscar produtos.</p>"
+    console.error(error)
+    return
+  }
 
-  if (error || !data || data.length === 0) {
+  if (!data || data.length === 0) {
     resultado.innerHTML = "<p>Nenhuma sugestão encontrada.</p>"
     return
   }
 
   data.forEach((produto, index) => {
-
-    if (produto.genero !== genero && produto.genero !== "unissex") {
-      return
-    }
 
     resultado.innerHTML += `
       <div class="card">
@@ -154,6 +160,7 @@ async function buscar() {
       </div>
     `
   })
+
 }
 
 </script>
