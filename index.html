@@ -1,144 +1,162 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Daluxe - Achados VIP</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <style>
-        :root { --accent: #D4AF37; --bg: #000; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); font-family: sans-serif; overflow: hidden; color: white; }
-        .brand-top { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); font-size: 22px; font-weight: bold; letter-spacing: 5px; z-index: 100; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
-        #appContainer { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; display: none; }
-        .video-card { height: 100vh; scroll-snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; background: #000; }
-        video { width: 100%; height: 100%; object-fit: cover; }
-        .side-actions { position: absolute; right: 15px; bottom: 180px; display: flex; flex-direction: column; gap: 20px; z-index: 10; }
-        .like-btn { background: none; border: none; color: white; font-size: 40px; cursor: pointer; }
-        .like-btn.active { color: #ff0050; }
-        .product-banner { position: absolute; bottom: 30px; left: 15px; right: 15px; background: white; border-radius: 15px; padding: 15px; display: flex; align-items: center; text-decoration: none; color: black; z-index: 10; }
-        .buy-btn { background: #000; color: #fff; padding: 10px 20px; border-radius: 25px; font-weight: bold; margin-left: auto; }
-        #authContainer { position: fixed; inset: 0; z-index: 9999; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px; }
-        .auth-box { width: 100%; max-width: 320px; text-align: center; }
-        input { width: 100%; padding: 15px; margin: 8px 0; border-radius: 10px; border: 1px solid #333; background: #111; color: white; box-sizing: border-box; }
-        button#btnEntrar { width: 100%; padding: 15px; background: var(--accent); border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
-    </style>
+<meta charset="UTF-8">
+<title>Presente Ideal</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+
+h2 {
+  text-align: center;
+}
+
+.form-box {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+input, select, button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+button {
+  background: #000;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+button:hover {
+  background: #333;
+}
+
+.card {
+  background: white;
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 10px;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.card img {
+  width: 120px;
+  border-radius: 8px;
+}
+
+.badge {
+  background: green;
+  color: white;
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 4px;
+}
+</style>
 </head>
+
 <body>
 
-    <div class="brand-top">DALUXE</div>
+<h2>Descubra o Presente Ideal 🎁</h2>
 
-    <div id="authContainer">
-        <div class="auth-box">
-            <h1 style="color:var(--accent); letter-spacing:5px;">DALUXE</h1>
-            <p id="authTitle">Crie sua conta VIP para continuar</p>
-            <input type="email" id="email" placeholder="E-mail">
-            <input type="password" id="password" placeholder="Senha">
-            <button id="btnEntrar" onclick="handleAuth()">ENTRAR / CADASTRAR</button>
+<div class="form-box">
+
+<input type="number" id="idade" placeholder="Idade">
+
+<select id="genero">
+  <option value="">Gênero</option>
+  <option value="masculino">Masculino</option>
+  <option value="feminino">Feminino</option>
+  <option value="unissex">Unissex</option>
+</select>
+
+<select id="categoria">
+  <option value="">Categoria</option>
+  <option value="tecnologia">Tecnologia</option>
+  <option value="livros">Livros</option>
+  <option value="esportes">Esportes</option>
+</select>
+
+<select id="preco">
+  <option value="100">Até R$100</option>
+  <option value="200">Até R$200</option>
+  <option value="500">Até R$500</option>
+</select>
+
+<button onclick="buscar()">Encontrar Presente</button>
+
+</div>
+
+<div id="resultado"></div>
+
+<script>
+
+const supabase = window.supabase.createClient(
+  "COLE_SUA_URL_AQUI",
+  "COLE_SUA_CHAVE_AQUI"
+);
+
+async function buscar() {
+
+  let idade = parseInt(document.getElementById("idade").value)
+  let genero = document.getElementById("genero").value
+  let categoria = document.getElementById("categoria").value
+  let preco = parseInt(document.getElementById("preco").value)
+
+  const { data, error } = await supabase
+    .from('produtos')
+    .select('*')
+    .lte('idade_min', idade)
+    .gte('idade_max', idade)
+    .lte('preco_max', preco)
+    .eq('categoria', categoria)
+    .order('preco_max', { ascending: true })
+    .limit(5)
+
+  let resultado = document.getElementById("resultado")
+  resultado.innerHTML = ""
+
+  if (error || !data || data.length === 0) {
+    resultado.innerHTML = "<p>Nenhuma sugestão encontrada.</p>"
+    return
+  }
+
+  data.forEach((produto, index) => {
+
+    if (produto.genero !== genero && produto.genero !== "unissex") {
+      return
+    }
+
+    resultado.innerHTML += `
+      <div class="card">
+        <img src="${produto.imagem}" alt="${produto.nome}">
+        <div>
+          ${index === 0 ? '<div class="badge">Mais recomendado</div>' : ''}
+          <h3>${produto.nome}</h3>
+          <p>${produto.descricao}</p>
+          <p><strong>Até R$ ${produto.preco_max}</strong></p>
+          <a href="${produto.link}" target="_blank">
+            <button>Comprar Agora</button>
+          </a>
         </div>
-    </div>
+      </div>
+    `
+  })
+}
 
-    <div id="appContainer"></div>
+</script>
 
-    <script>
-        // ======= CONFIGURAÇÃO OBRIGATÓRIA =======
-        const SUPABASE_URL = 'https://fumbnqnjhreauxtnrufv.supabase.co'; 
-        const SUPABASE_KEY = 'sb_secret_R8vzt2rPLdGPq6ttS0ZhEw_zkMv6WVs';
-        const SHEET_ID = '1817zpM3JYfKchLtHPOauozCcsVhDieTSs3QG5-5ZAVU';
-        // ========================================
-
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        const DATA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
-
-        let currentUser = null;
-        let videosVistos = new Set();
-
-        async function checkUser() {
-            try {
-                const { data: { user } } = await _supabase.auth.getUser();
-                currentUser = user;
-                loadVideos();
-            } catch (e) { loadVideos(); } // Se falhar o auth, carrega vídeos igual
-        }
-
-        async function loadVideos() {
-            document.getElementById('appContainer').style.display = 'block';
-            try {
-                const response = await fetch(DATA_URL);
-                const text = await response.text();
-                const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S\w\W]*)\);/)[1]);
-                const rows = json.table.rows.slice(1);
-
-                const container = document.getElementById('appContainer');
-                rows.forEach((row, index) => {
-                    const videoUrl = row.c[0]?.v;
-                    const shopLink = row.c[1]?.v || "#";
-                    const desc = row.c[3]?.v || "Ver Produto";
-                    if (!videoUrl) return;
-
-                    const card = document.createElement('div');
-                    card.className = 'video-card';
-                    card.dataset.index = index;
-                    card.innerHTML = `
-                        <video loop playsinline muted src="${videoUrl}"></video>
-                        <div class="side-actions">
-                            <button class="like-btn" onclick="handleLikeClick(this, '${videoUrl}')">
-                                <i class="fas fa-heart"></i>
-                            </button>
-                        </div>
-                        <a href="${shopLink}" target="_blank" class="product-banner">
-                            <span style="font-weight:bold">${desc}</span>
-                            <div class="buy-btn">EU QUERO</div>
-                        </a>
-                    `;
-                    container.appendChild(card);
-                });
-                startObservers();
-            } catch (e) { console.error("Erro Planilha:", e); }
-        }
-
-        function startObservers() {
-            const videos = document.querySelectorAll('video');
-            const observer = new IntersectionObserver(entries => {
-                entries.forEach(e => {
-                    if (e.isIntersecting) {
-                        const idx = parseInt(e.target.parentElement.dataset.index);
-                        if (!currentUser && videosVistos.size >= 10 && !videosVistos.has(idx)) {
-                            document.getElementById('authContainer').style.display = 'flex';
-                            document.getElementById('appContainer').style.overflowY = 'hidden';
-                            e.target.pause();
-                        } else {
-                            e.target.play().catch(()=>{});
-                            videosVistos.add(idx);
-                        }
-                    } else { e.target.pause(); }
-                });
-            }, { threshold: 0.6 });
-            videos.forEach(v => {
-                observer.observe(v);
-                v.addEventListener('click', () => v.muted = !v.muted);
-            });
-        }
-
-        async function handleAuth() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const { error } = await _supabase.auth.signInWithPassword({ email, password });
-            if (error) {
-                const { error: signUpError } = await _supabase.auth.signUp({ email, password });
-                if (signUpError) alert("Erro: " + signUpError.message);
-                else { alert("Conta criada! Site liberado."); location.reload(); }
-            } else { location.reload(); }
-        }
-
-        function handleLikeClick(btn, url) {
-            if (!currentUser) { document.getElementById('authContainer').style.display = 'flex'; return; }
-            btn.classList.toggle('active');
-            _supabase.from('curtidas').insert({ user_id: currentUser.id, video_url: url });
-        }
-
-        window.onload = checkUser;
-    </script>
 </body>
 </html>
