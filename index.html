@@ -1,7 +1,5 @@
 <script>
 
-const API_URL = "COLE_AQUI_SUA_URL_DO_GOOGLE_SCRIPT";
-
 async function buscar() {
 
   let idade = parseInt(document.getElementById("idade").value)
@@ -9,34 +7,47 @@ async function buscar() {
   let categoria = document.getElementById("categoria").value
   let preco = parseInt(document.getElementById("preco").value)
 
+  const response = await fetch("COLE_AQUI_LINK_CSV")
+  const texto = await response.text()
+
+  const linhas = texto.split("\n").slice(1)
   let resultado = document.getElementById("resultado")
   resultado.innerHTML = ""
 
-  if (!idade || !genero || !categoria || !preco) {
-    resultado.innerHTML = "<p>Preencha todos os campos.</p>"
-    return
-  }
+  let produtos = linhas.map(linha => {
+    let col = linha.split(",")
+    return {
+      nome: col[0],
+      descricao: col[1],
+      categoria: col[2],
+      idade_min: parseInt(col[3]),
+      idade_max: parseInt(col[4]),
+      genero: col[5],
+      preco_max: parseInt(col[6]),
+      imagem: col[7],
+      link: col[8]
+    }
+  })
 
-  const response = await fetch(API_URL)
-  const produtos = await response.json()
-
-  const filtrados = produtos.filter(produto =>
-    idade >= produto.idade_min &&
-    idade <= produto.idade_max &&
-    preco >= produto.preco_max &&
-    produto.categoria === categoria &&
-    (produto.genero === genero || produto.genero === "unissex")
-  )
+  let filtrados = produtos
+    .filter(p =>
+      idade >= p.idade_min &&
+      idade <= p.idade_max &&
+      preco >= p.preco_max &&
+      p.categoria === categoria &&
+      (p.genero === genero || p.genero === "unissex")
+    )
+    .slice(0,5)
 
   if (filtrados.length === 0) {
-    resultado.innerHTML = "<p>Nenhuma sugestão encontrada.</p>"
+    resultado.innerHTML = "Nenhuma sugestão encontrada."
     return
   }
 
-  filtrados.slice(0,5).forEach((produto, index) => {
+  filtrados.forEach((produto, index) => {
     resultado.innerHTML += `
       <div class="card">
-        <img src="${produto.imagem}" alt="${produto.nome}">
+        <img src="${produto.imagem}">
         <div>
           ${index === 0 ? '<div class="badge">Mais recomendado</div>' : ''}
           <h3>${produto.nome}</h3>
@@ -49,7 +60,6 @@ async function buscar() {
       </div>
     `
   })
-
 }
 
 </script>
