@@ -1,109 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Presente Ideal</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f4f4;
-  max-width: 900px;
-  margin: auto;
-  padding: 20px;
-}
-
-.form-box {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-}
-
-input, select, button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-}
-
-button {
-  background: #000;
-  color: white;
-  border: none;
-  cursor: pointer;
-  border-radius: 6px;
-}
-
-button:hover {
-  background: #333;
-}
-
-.card {
-  background: white;
-  margin-top: 20px;
-  padding: 15px;
-  border-radius: 10px;
-  display: flex;
-  gap: 15px;
-  align-items: center;
-}
-
-.card img {
-  width: 120px;
-  border-radius: 8px;
-}
-
-.badge {
-  background: green;
-  color: white;
-  padding: 4px 8px;
-  font-size: 12px;
-  border-radius: 4px;
-}
-</style>
-</head>
-
-<body>
-
-<h2>Descubra o Presente Ideal 🎁</h2>
-
-<div class="form-box">
-
-<input type="number" id="idade" placeholder="Idade">
-
-<select id="genero">
-  <option value="">Gênero</option>
-  <option value="masculino">Masculino</option>
-  <option value="feminino">Feminino</option>
-  <option value="unissex">Unissex</option>
-</select>
-
-<select id="categoria">
-  <option value="">Categoria</option>
-  <option value="tecnologia">Tecnologia</option>
-  <option value="livros">Livros</option>
-  <option value="esportes">Esportes</option>
-</select>
-
-<select id="preco">
-  <option value="">Faixa de preço</option>
-  <option value="100">Até R$100</option>
-  <option value="200">Até R$200</option>
-  <option value="500">Até R$500</option>
-</select>
-
-<button onclick="buscar()">Encontrar Presente</button>
-
-</div>
-
-<div id="resultado"></div>
-
 <script>
 
-const supabase = window.supabase.createClient(
-  "COLE_SUA_URL_AQUI",
-  "COLE_SUA_CHAVE_AQUI"
-);
+const API_URL = "https://docs.google.com/spreadsheets/d/1StvCRU-MpS2GnHDT43GGUU90JSRICMCfov147ZDjhk4/edit?usp=sharing";
 
 async function buscar() {
 
@@ -115,36 +12,28 @@ async function buscar() {
   let resultado = document.getElementById("resultado")
   resultado.innerHTML = ""
 
-  // 🔎 Validação
   if (!idade || !genero || !categoria || !preco) {
     resultado.innerHTML = "<p>Preencha todos os campos.</p>"
     return
   }
 
-  const { data, error } = await supabase
-    .from('produtos')
-    .select('*')
-    .lte('idade_min', idade)
-    .gte('idade_max', idade)
-    .lte('preco_max', preco)
-    .eq('categoria', categoria)
-    .in('genero', [genero, 'unissex'])
-    .order('preco_max', { ascending: true })
-    .limit(5)
+  const response = await fetch(API_URL)
+  const produtos = await response.json()
 
-  if (error) {
-    resultado.innerHTML = "<p>Erro ao buscar produtos.</p>"
-    console.error(error)
-    return
-  }
+  const filtrados = produtos.filter(produto =>
+    idade >= produto.idade_min &&
+    idade <= produto.idade_max &&
+    preco >= produto.preco_max &&
+    produto.categoria === categoria &&
+    (produto.genero === genero || produto.genero === "unissex")
+  )
 
-  if (!data || data.length === 0) {
+  if (filtrados.length === 0) {
     resultado.innerHTML = "<p>Nenhuma sugestão encontrada.</p>"
     return
   }
 
-  data.forEach((produto, index) => {
-
+  filtrados.slice(0,5).forEach((produto, index) => {
     resultado.innerHTML += `
       <div class="card">
         <img src="${produto.imagem}" alt="${produto.nome}">
@@ -164,6 +53,3 @@ async function buscar() {
 }
 
 </script>
-
-</body>
-</html>
