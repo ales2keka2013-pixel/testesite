@@ -208,19 +208,24 @@ async function buscar() {
     // FILTRO CORRETO
     const filtrados = produtos.filter(produto => {
 
-      const idadeMin = Number(produto.idade_min);
-      const idadeMax = Number(produto.idade_max);
-      const precoMax = Number(produto.preco_max);
+  const idadeMin = Number(produto.idade_min);
+  const idadeMax = Number(produto.idade_max);
+  const precoMax = Number(produto.preco_max);
 
-      return (
-        idade >= idadeMin &&
-        idade <= idadeMax &&
-        precoMax <= preco &&
-        (produto.genero === genero || produto.genero === "unissex") &&
-        produto.categoria === categoria
-      );
-    });
+  console.log("Testando produto:", produto.nome);
+  console.log("Idade OK?", idade >= idadeMin && idade <= idadeMax);
+  console.log("Preço OK?", precoMax <= preco);
+  console.log("Genero OK?", produto.genero === genero || produto.genero === "unissex");
+  console.log("Categoria OK?", produto.categoria === categoria);
 
+  return (
+    idade >= idadeMin &&
+    idade <= idadeMax &&
+    precoMax <= preco &&
+    (produto.genero === genero || produto.genero === "unissex") &&
+    produto.categoria === categoria
+  );
+});
     if (filtrados.length === 0) {
       resultado.innerHTML = "Nenhuma sugestão encontrada.";
       return;
@@ -268,6 +273,7 @@ async function buscar() {
 
 </body>
 </html>
+
 
 
 
