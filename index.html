@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>Presente Ideal</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+
 <body>
 
 <h2>Descubra o Presente Ideal 🎁</h2>
@@ -37,36 +37,48 @@
 
 <script>
 
-const supabase = window.supabase.createClient(
-  "https://fumbnqnjhreauxtnrufv.supabase.co",
-  "sb_publishable_B1quhospdbUFPzuqwcai5w_GyKjQpig"
-);
+const API_URL = "https://script.google.com/macros/s/AKfycbw-KaebBLpNqKbkJYKl6FfDOzXeeXWheSi4mKfdJ2z0peZ0eiGrfu7pIkuy-R8_--dF/exec";
 
 async function buscar() {
 
-  let idade = parseInt(document.getElementById("idade").value)
-  let genero = document.getElementById("genero").value
-  let categoria = document.getElementById("categoria").value
-  let preco = parseInt(document.getElementById("preco").value)
+  const idade = parseInt(document.getElementById("idade").value);
+  const genero = document.getElementById("genero").value;
+  const categoria = document.getElementById("categoria").value;
+  const preco = parseInt(document.getElementById("preco").value);
 
-  const { data, error } = await supabase
-    .from('produtos')
-    .select('*')
-    .lte('preco_max', preco)
-    .gte('idade_max', idade)
-    .lte('idade_min', idade)
+  const resposta = await fetch(API_URL);
+  const produtos = await resposta.json();
 
-  let resultado = document.getElementById("resultado")
+  const filtrados = produtos.filter(produto =>
+    idade >= Number(produto.idade_min) &&
+    idade <= Number(produto.idade_max) &&
+    preco >= Number(produto.preco_max) &&
+    (produto.genero === genero || produto.genero === "unissex") &&
+    produto.categoria === categoria
+  );
 
-  if (data.length > 0) {
-    let produto = data[0]
-    resultado.innerHTML = `
-      <h3>${produto.nome}</h3>
-      <a href="${produto.link}" target="_blank">Comprar</a>
-    `
-  } else {
-    resultado.innerHTML = "Nenhuma sugestão encontrada."
+  const resultado = document.getElementById("resultado");
+  resultado.innerHTML = "";
+
+  if (filtrados.length === 0) {
+    resultado.innerHTML = "Nenhuma sugestão encontrada.";
+    return;
   }
+
+  filtrados.slice(0,5).forEach((produto, index) => {
+    resultado.innerHTML += `
+      <div style="margin-top:20px; border:1px solid #ccc; padding:10px;">
+        ${index === 0 ? "<strong>Mais recomendado</strong><br>" : ""}
+        <h3>${produto.nome}</h3>
+        <p>${produto.descricao}</p>
+        <p>Até R$ ${produto.preco_max}</p>
+        <a href="${produto.link}" target="_blank">
+          <button>Comprar</button>
+        </a>
+      </div>
+    `;
+  });
+
 }
 
 </script>
