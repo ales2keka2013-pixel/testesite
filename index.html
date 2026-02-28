@@ -3,37 +3,141 @@
 <head>
 <meta charset="UTF-8">
 <title>Presente Ideal</title>
+
+<style>
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f2f2f2;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.form-box {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  margin-bottom: 30px;
+}
+
+input, select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  border-radius: 6px;
+  border: none;
+  background: black;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover {
+  background: #333;
+}
+
+.card {
+  background: white;
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.card img {
+  width: 120px;
+  border-radius: 8px;
+}
+
+.card-content {
+  flex: 1;
+}
+
+.badge {
+  background: green;
+  color: white;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+@media(max-width: 600px) {
+  .card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .card img {
+    width: 100%;
+    max-width: 200px;
+  }
+}
+
+</style>
 </head>
 
 <body>
 
-<h2>Descubra o Presente Ideal 🎁</h2>
+<div class="container">
 
-<input type="number" id="idade" placeholder="Idade"><br><br>
+<h2>🎁 Descubra o Presente Ideal</h2>
+
+<div class="form-box">
+
+<input type="number" id="idade" placeholder="Idade">
 
 <select id="genero">
   <option value="">Gênero</option>
   <option value="masculino">Masculino</option>
   <option value="feminino">Feminino</option>
   <option value="unissex">Unissex</option>
-</select><br><br>
+</select>
 
 <select id="categoria">
   <option value="">Categoria</option>
   <option value="tecnologia">Tecnologia</option>
   <option value="livros">Livros</option>
   <option value="esportes">Esportes</option>
-</select><br><br>
+</select>
 
 <select id="preco">
-  <option value="100">Até 100</option>
-  <option value="200">Até 200</option>
-  <option value="500">Até 500</option>
-</select><br><br>
+  <option value="100">Até R$100</option>
+  <option value="200">Até R$200</option>
+  <option value="500">Até R$500</option>
+</select>
 
-<button onclick="buscar()">Buscar Presente</button>
+<button onclick="buscar()">Encontrar Presente</button>
+
+</div>
 
 <div id="resultado"></div>
+
+</div>
 
 <script>
 
@@ -49,10 +153,8 @@ async function buscar() {
     const response = await fetch(API_URL);
     const produtos = await response.json();
 
-    console.log(produtos);
-
     if (!produtos || produtos.length === 0) {
-      resultado.innerHTML = "Nenhum produto vindo da planilha.";
+      resultado.innerHTML = "Nenhum produto encontrado.";
       return;
     }
 
@@ -60,27 +162,31 @@ async function buscar() {
 
     produtos.forEach((produto, index) => {
 
-      const imagem = produto.imagem || produto.Imagem || "";
-      const link = produto.link || produto.Link || "";
+      const imagem = produto.imagem || "";
+      const link = produto.link || "";
 
       resultado.innerHTML += `
-        <div style="margin-top:20px; border:1px solid #ccc; padding:15px;">
+        <div class="card">
           
-          ${index === 0 ? "<strong style='color:green;'>Mais recomendado</strong><br>" : ""}
-          
-          ${imagem ? `<img src="${imagem}" style="width:120px;">` : ""}
-          
-          <h3>${produto.nome || ""}</h3>
-          
-          <p>${produto.descricao || ""}</p>
-          
-          <p>Até R$ ${produto.preco_max || ""}</p>
-          
-          ${link ? `
-            <a href="${link}" target="_blank">
-              <button>Comprar Agora</button>
-            </a>
-          ` : ""}
+          ${imagem ? `<img src="${imagem}">` : ""}
+
+          <div class="card-content">
+
+            ${index === 0 ? `<div class="badge">Mais recomendado</div>` : ""}
+
+            <h3>${produto.nome || ""}</h3>
+            
+            <p>${produto.descricao || ""}</p>
+            
+            <p><strong>Até R$ ${produto.preco_max || ""}</strong></p>
+            
+            ${link ? `
+              <a href="${link}" target="_blank">
+                <button>Comprar Agora</button>
+              </a>
+            ` : ""}
+
+          </div>
 
         </div>
       `;
@@ -97,8 +203,3 @@ async function buscar() {
 
 </body>
 </html>
-
-
-
-
-
