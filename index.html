@@ -39,37 +39,65 @@
 
 const API_URL = "https://script.google.com/macros/s/AKfycbwV-N476BVfkBkokYt1Brwf8rBKRNYdOK-4AowKEHdfa0lnVLTMIQFQOg1O0K8Ms6dZ/exec";
 
-produtos.forEach((produto, index) => {
-  resultado.innerHTML += `
-    <div style="margin-top:20px; border:1px solid #ccc; padding:15px; border-radius:8px;">
-      
-      ${index === 0 ? "<strong style='color:green;'>Mais recomendado</strong><br>" : ""}
-      
-      ${produto.imagem ? `<img src="${produto.imagem}" 
-        style="width:120px; display:block; margin-bottom:10px;">` : ""}
-      
-      <h3>${produto.nome}</h3>
-      
-      <p>${produto.descricao || ""}</p>
-      
-      <p><strong>Até R$ ${produto.preco_max}</strong></p>
-      
-      ${produto.link ? `
-        <a href="${produto.link}" target="_blank">
-          <button style="padding:8px 15px; background:black; color:white; border:none; cursor:pointer;">
-            Comprar Agora
-          </button>
-        </a>
-      ` : ""}
+async function buscar() {
 
-    </div>
-  `;
-});
+  const resultado = document.getElementById("resultado");
+  resultado.innerHTML = "Carregando...";
+
+  try {
+
+    const response = await fetch(API_URL);
+    const produtos = await response.json();
+
+    console.log(produtos);
+
+    if (!produtos || produtos.length === 0) {
+      resultado.innerHTML = "Nenhum produto vindo da planilha.";
+      return;
+    }
+
+    resultado.innerHTML = "";
+
+    produtos.forEach((produto, index) => {
+
+      const imagem = produto.imagem || produto.Imagem || "";
+      const link = produto.link || produto.Link || "";
+
+      resultado.innerHTML += `
+        <div style="margin-top:20px; border:1px solid #ccc; padding:15px;">
+          
+          ${index === 0 ? "<strong style='color:green;'>Mais recomendado</strong><br>" : ""}
+          
+          ${imagem ? `<img src="${imagem}" style="width:120px;">` : ""}
+          
+          <h3>${produto.nome || ""}</h3>
+          
+          <p>${produto.descricao || ""}</p>
+          
+          <p>Até R$ ${produto.preco_max || ""}</p>
+          
+          ${link ? `
+            <a href="${link}" target="_blank">
+              <button>Comprar Agora</button>
+            </a>
+          ` : ""}
+
+        </div>
+      `;
+    });
+
+  } catch (erro) {
+    console.error(erro);
+    resultado.innerHTML = "Erro ao buscar produtos.";
+  }
+
+}
 
 </script>
 
 </body>
 </html>
+
 
 
 
