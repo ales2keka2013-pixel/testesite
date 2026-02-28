@@ -198,81 +198,41 @@ async function buscar() {
   const preco = parseInt(document.getElementById("preco").value);
 
   const resultado = document.getElementById("resultado");
-  resultado.innerHTML = "Buscando sugestões...";
+  resultado.innerHTML = "Testando...";
 
-  try {
+  const response = await fetch(API_URL);
+  const produtos = await response.json();
 
-    const response = await fetch(API_URL);
-    const produtos = await response.json();
+  console.log("VALORES DIGITADOS:");
+  console.log("Idade:", idade);
+  console.log("Genero:", genero);
+  console.log("Categoria:", categoria);
+  console.log("Preco:", preco);
 
-    // FILTRO CORRETO
-    const filtrados = produtos.filter(produto => {
+  console.log("PRODUTOS DA PLANILHA:");
+  console.log(produtos);
 
-  const idadeMin = Number(produto.idade_min);
-  const idadeMax = Number(produto.idade_max);
-  const precoMax = Number(produto.preco_max);
+  produtos.forEach(produto => {
 
-  console.log("Testando produto:", produto.nome);
-  console.log("Idade OK?", idade >= idadeMin && idade <= idadeMax);
-  console.log("Preço OK?", precoMax <= preco);
-  console.log("Genero OK?", produto.genero === genero || produto.genero === "unissex");
-  console.log("Categoria OK?", produto.categoria === categoria);
+    console.log("------");
+    console.log("Produto:", produto.nome);
 
-  return (
-    idade >= idadeMin &&
-    idade <= idadeMax &&
-    precoMax <= preco &&
-    (produto.genero === genero || produto.genero === "unissex") &&
-    produto.categoria === categoria
-  );
-});
-    if (filtrados.length === 0) {
-      resultado.innerHTML = "Nenhuma sugestão encontrada.";
-      return;
-    }
+    console.log("IdadeMin:", produto.idade_min);
+    console.log("IdadeMax:", produto.idade_max);
+    console.log("Genero:", produto.genero);
+    console.log("Categoria:", produto.categoria);
+    console.log("PrecoMax:", produto.preco_max);
 
-    resultado.innerHTML = "";
+  });
 
-    filtrados.forEach((produto, index) => {
-
-      resultado.innerHTML += `
-        <div class="card">
-          
-          ${produto.imagem ? `<img src="${produto.imagem}">` : ""}
-
-          <div class="card-content">
-
-            ${index === 0 ? `<div class="badge">Mais recomendado</div>` : ""}
-
-            <h3>${produto.nome}</h3>
-            
-            <p>${produto.descricao}</p>
-            
-            <p><strong>Até R$ ${produto.preco_max}</strong></p>
-            
-            ${produto.link ? `
-              <a href="${produto.link}" target="_blank">
-                <button class="buy-btn">Comprar Agora</button>
-              </a>
-            ` : ""}
-
-          </div>
-
-        </div>
-      `;
-    });
-
-  } catch (erro) {
-    console.error(erro);
-    resultado.innerHTML = "Erro ao carregar sugestões.";
-  }
-
+  resultado.innerHTML = "Veja o console (F12)";
 }
 
 </script>
 
 </body>
 </html>
+
 
 
 
