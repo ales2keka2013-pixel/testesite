@@ -190,24 +190,24 @@ async function buscar() {
 
     const filtrados = produtos.filter(produto => {
 
-      const idadeMin = limparNumero(produto.idade_min);
-      const idadeMax = limparNumero(produto.idade_max);
-      const precoMax = limparNumero(produto.preco_max);
+  const idadeMin = limparNumero(produto["idade_min"]);
+  const idadeMax = limparNumero(produto["idade_max"] || produto["idade_max "]);
+  const precoMax = limparNumero(produto["preco_max"]);
 
-      const generoProduto = limparTexto(produto.genero);
-      const categoriaProduto = limparTexto(produto.categoria);
+  const generoProduto = limparTexto(
+    produto["genero"] || produto[" genero"]
+  );
 
-      const generoBusca = limparTexto(genero);
-      const categoriaBusca = limparTexto(categoria);
+  const categoriaProduto = limparTexto(produto["categoria"]);
 
-      return (
-        idade >= idadeMin &&
-        idade <= idadeMax &&
-        precoMax <= preco &&
-        (generoProduto === generoBusca || generoProduto === "unissex") &&
-        categoriaProduto === categoriaBusca
-      );
-    });
+  return (
+    idade >= idadeMin &&
+    idade <= idadeMax &&
+    precoMax <= preco &&
+    (generoProduto === generoBusca || generoProduto === "unissex") &&
+    categoriaProduto === categoriaBusca
+  );
+});
 
     if (filtrados.length === 0) {
       resultado.innerHTML = "<p>Nenhuma sugestão encontrada.</p>";
@@ -255,3 +255,4 @@ async function buscar() {
 
 </body>
 </html>
+
