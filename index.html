@@ -4,61 +4,32 @@
 <meta charset="UTF-8">
 <title>Presente Ideal</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<style>
-body {
-  font-family: Arial;
-  max-width: 700px;
-  margin: auto;
-  padding: 20px;
-}
-
-input, select, button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-}
-
-.card {
-  border: 1px solid #ddd;
-  padding: 15px;
-  margin-top: 15px;
-  border-radius: 8px;
-}
-
-button {
-  background: black;
-  color: white;
-  cursor: pointer;
-}
-</style>
-
 </head>
 <body>
 
 <h2>Descubra o Presente Ideal 🎁</h2>
 
-<input type="number" id="idade" placeholder="Idade">
+<input type="number" id="idade" placeholder="Idade"><br><br>
 
 <select id="genero">
   <option value="">Gênero</option>
   <option value="masculino">Masculino</option>
   <option value="feminino">Feminino</option>
   <option value="unissex">Unissex</option>
-</select>
+</select><br><br>
 
 <select id="categoria">
   <option value="">Categoria</option>
   <option value="tecnologia">Tecnologia</option>
   <option value="livros">Livros</option>
   <option value="esportes">Esportes</option>
-</select>
+</select><br><br>
 
 <select id="preco">
   <option value="100">Até 100</option>
   <option value="200">Até 200</option>
   <option value="500">Até 500</option>
-</select>
+</select><br><br>
 
 <button onclick="buscar()">Buscar Presente</button>
 
@@ -67,8 +38,8 @@ button {
 <script>
 
 const supabase = window.supabase.createClient(
-  "COLE_SUA_URL_AQUI",
-  "COLE_SUA_CHAVE_AQUI"
+  "https://fumbnqnjhreauxtnrufv.supabase.co",
+  "sb_publishable_B1quhospdbUFPzuqwcai5w_GyKjQpig"
 );
 
 async function buscar() {
@@ -81,42 +52,21 @@ async function buscar() {
   const { data, error } = await supabase
     .from('produtos')
     .select('*')
+    .lte('preco_max', preco)
     .gte('idade_max', idade)
     .lte('idade_min', idade)
-    .lte('preco_max', preco)
-    .order('preco_max', { ascending: true })
 
   let resultado = document.getElementById("resultado")
-  resultado.innerHTML = ""
 
-  if (error) {
-    resultado.innerHTML = "Erro ao buscar produtos."
-    return
-  }
-
-  // Filtrar gênero e categoria no lado do cliente
-  let filtrados = data.filter(p => 
-    (p.genero === genero || p.genero === "unissex") &&
-    p.categoria === categoria
-  )
-
-  if (filtrados.length === 0) {
-    resultado.innerHTML = "Nenhuma sugestão encontrada."
-    return
-  }
-
-  filtrados.slice(0,5).forEach(produto => {
-    resultado.innerHTML += `
-      <div class="card">
-        <h3>${produto.nome}</h3>
-        <p>Categoria: ${produto.categoria}</p>
-        <p>Até R$ ${produto.preco_max}</p>
-        <a href="${produto.link}" target="_blank">
-          <button>Comprar</button>
-        </a>
-      </div>
+  if (data.length > 0) {
+    let produto = data[0]
+    resultado.innerHTML = `
+      <h3>${produto.nome}</h3>
+      <a href="${produto.link}" target="_blank">Comprar</a>
     `
-  })
+  } else {
+    resultado.innerHTML = "Nenhuma sugestão encontrada."
+  }
 }
 
 </script>
