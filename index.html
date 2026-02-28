@@ -151,7 +151,6 @@ button:hover {
 <script>
 
 const API_URL = "https://script.google.com/macros/s/AKfycbwwxs-lSOCnQ9OKUIC42ZdC87_pGDKYYHPPgnNlt0fLyR-ziQ4bORLJ-3YjY-es5SO2/exec";
-
 async function buscar() {
 
   const idade = Number(document.getElementById("idade").value);
@@ -188,26 +187,27 @@ async function buscar() {
       );
     };
 
+    // 🔥 AGORA DEFINIMOS CORRETAMENTE
+    const generoBusca = limparTexto(genero);
+    const categoriaBusca = limparTexto(categoria);
+
     const filtrados = produtos.filter(produto => {
 
-  const idadeMin = limparNumero(produto["idade_min"]);
-  const idadeMax = limparNumero(produto["idade_max"] || produto["idade_max "]);
-  const precoMax = limparNumero(produto["preco_max"]);
+      const idadeMin = limparNumero(produto["idade_min"]);
+      const idadeMax = limparNumero(produto["idade_max"]);
+      const precoMax = limparNumero(produto["preco_max"]);
 
-  const generoProduto = limparTexto(
-    produto["genero"] || produto[" genero"]
-  );
+      const generoProduto = limparTexto(produto["genero"]);
+      const categoriaProduto = limparTexto(produto["categoria"]);
 
-  const categoriaProduto = limparTexto(produto["categoria"]);
-
-  return (
-    idade >= idadeMin &&
-    idade <= idadeMax &&
-    precoMax <= preco &&
-    (generoProduto === generoBusca || generoProduto === "unissex") &&
-    categoriaProduto === categoriaBusca
-  );
-});
+      return (
+        idade >= idadeMin &&
+        idade <= idadeMax &&
+        precoMax <= preco &&
+        (generoProduto === generoBusca || generoProduto === "unissex") &&
+        categoriaProduto === categoriaBusca
+      );
+    });
 
     if (filtrados.length === 0) {
       resultado.innerHTML = "<p>Nenhuma sugestão encontrada.</p>";
@@ -251,10 +251,49 @@ async function buscar() {
   }
 }
 
+
+    resultado.innerHTML = "";
+
+    filtrados.forEach((produto, index) => {
+
+      resultado.innerHTML += `
+        <div class="card">
+
+          ${produto.imagem ? `<img src="${produto.imagem}" alt="${produto.nome}">` : ""}
+
+          <div class="card-content">
+
+            ${index === 0 ? `<div class="badge">Mais recomendado</div>` : ""}
+
+            <h3>${produto.nome}</h3>
+
+            <p>${produto.descricao || ""}</p>
+
+            <p><strong>Até R$ ${limparNumero(produto.preco_max)}</strong></p>
+
+            ${produto.link ? `
+              <a href="${produto.link}" target="_blank">
+                <button class="buy-btn">Comprar Agora</button>
+              </a>
+            ` : ""}
+
+          </div>
+
+        </div>
+      `;
+    });
+
+  } catch (erro) {
+    console.error(erro);
+    resultado.innerHTML = "<p>Erro ao carregar sugestões.</p>";
+  }
+}
+
 </script>
 
 </body>
 </html>
+
 
 
 
