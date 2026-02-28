@@ -1,75 +1,95 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Presente Ideal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Presente Ideal | Descubra o Presente Perfeito</title>
 
 <style>
 
 body {
-  font-family: Arial, sans-serif;
-  background: #f2f2f2;
+  font-family: 'Segoe UI', sans-serif;
   margin: 0;
-  padding: 0;
+  background: #f8f9fc;
+  color: #333;
+}
+
+header {
+  background: linear-gradient(135deg, #1e1e2f, #3a3a5c);
+  color: white;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 36px;
+}
+
+header p {
+  margin-top: 10px;
+  font-size: 18px;
+  opacity: 0.9;
 }
 
 .container {
-  max-width: 900px;
+  max-width: 1000px;
   margin: auto;
-  padding: 20px;
-}
-
-h2 {
-  text-align: center;
-  margin-bottom: 30px;
+  padding: 30px 20px;
 }
 
 .form-box {
   background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-  margin-bottom: 30px;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  margin-top: -40px;
 }
 
 input, select {
   width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-
-button {
-  width: 100%;
   padding: 12px;
-  margin-top: 15px;
-  border-radius: 6px;
-  border: none;
-  background: black;
-  color: white;
-  cursor: pointer;
-  font-weight: bold;
+  margin-top: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
 }
 
-button:hover {
-  background: #333;
+.main-btn {
+  width: 100%;
+  padding: 14px;
+  margin-top: 15px;
+  border-radius: 8px;
+  border: none;
+  background: #ff4d4d;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.main-btn:hover {
+  background: #e63c3c;
 }
 
 .card {
   background: white;
-  margin-top: 20px;
+  margin-top: 25px;
   padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.05);
   display: flex;
   gap: 20px;
   align-items: center;
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
 }
 
 .card img {
-  width: 120px;
-  border-radius: 8px;
+  width: 140px;
+  border-radius: 10px;
 }
 
 .card-content {
@@ -77,16 +97,36 @@ button:hover {
 }
 
 .badge {
-  background: green;
+  background: #28a745;
   color: white;
   font-size: 12px;
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: 5px;
   display: inline-block;
   margin-bottom: 8px;
 }
 
-@media(max-width: 600px) {
+.buy-btn {
+  padding: 10px 16px;
+  background: #1e1e2f;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.buy-btn:hover {
+  background: #000;
+}
+
+footer {
+  text-align: center;
+  padding: 30px;
+  font-size: 14px;
+  color: #777;
+}
+
+@media(max-width: 768px) {
   .card {
     flex-direction: column;
     text-align: center;
@@ -94,7 +134,7 @@ button:hover {
 
   .card img {
     width: 100%;
-    max-width: 200px;
+    max-width: 250px;
   }
 }
 
@@ -103,9 +143,12 @@ button:hover {
 
 <body>
 
-<div class="container">
+<header>
+  <h1>🎁 Encontre o Presente Ideal</h1>
+  <p>Descubra sugestões perfeitas baseadas em idade, estilo e orçamento</p>
+</header>
 
-<h2>🎁 Descubra o Presente Ideal</h2>
+<div class="container">
 
 <div class="form-box">
 
@@ -131,13 +174,17 @@ button:hover {
   <option value="500">Até R$500</option>
 </select>
 
-<button onclick="buscar()">Encontrar Presente</button>
+<button class="main-btn" onclick="buscar()">Encontrar Presente</button>
 
 </div>
 
 <div id="resultado"></div>
 
 </div>
+
+<footer>
+  © 2026 Presente Ideal • Este site pode conter links de afiliado.
+</footer>
 
 <script>
 
@@ -146,43 +193,35 @@ const API_URL = "https://script.google.com/macros/s/AKfycbwV-N476BVfkBkokYt1Brwf
 async function buscar() {
 
   const resultado = document.getElementById("resultado");
-  resultado.innerHTML = "Carregando...";
+  resultado.innerHTML = "Buscando sugestões...";
 
   try {
 
     const response = await fetch(API_URL);
     const produtos = await response.json();
 
-    if (!produtos || produtos.length === 0) {
-      resultado.innerHTML = "Nenhum produto encontrado.";
-      return;
-    }
-
     resultado.innerHTML = "";
 
     produtos.forEach((produto, index) => {
 
-      const imagem = produto.imagem || "";
-      const link = produto.link || "";
-
       resultado.innerHTML += `
         <div class="card">
           
-          ${imagem ? `<img src="${imagem}">` : ""}
+          ${produto.imagem ? `<img src="${produto.imagem}">` : ""}
 
           <div class="card-content">
 
             ${index === 0 ? `<div class="badge">Mais recomendado</div>` : ""}
 
-            <h3>${produto.nome || ""}</h3>
+            <h3>${produto.nome}</h3>
             
-            <p>${produto.descricao || ""}</p>
+            <p>${produto.descricao}</p>
             
-            <p><strong>Até R$ ${produto.preco_max || ""}</strong></p>
+            <p><strong>Até R$ ${produto.preco_max}</strong></p>
             
-            ${link ? `
-              <a href="${link}" target="_blank">
-                <button>Comprar Agora</button>
+            ${produto.link ? `
+              <a href="${produto.link}" target="_blank">
+                <button class="buy-btn">Comprar Agora</button>
               </a>
             ` : ""}
 
@@ -193,8 +232,7 @@ async function buscar() {
     });
 
   } catch (erro) {
-    console.error(erro);
-    resultado.innerHTML = "Erro ao buscar produtos.";
+    resultado.innerHTML = "Erro ao carregar sugestões.";
   }
 
 }
