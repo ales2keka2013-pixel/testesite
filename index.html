@@ -192,6 +192,11 @@ const API_URL = "https://script.google.com/macros/s/AKfycbwV-N476BVfkBkokYt1Brwf
 
 async function buscar() {
 
+  const idade = parseInt(document.getElementById("idade").value);
+  const genero = document.getElementById("genero").value.toLowerCase().trim();
+  const categoria = document.getElementById("categoria").value.toLowerCase().trim();
+  const preco = parseInt(document.getElementById("preco").value);
+
   const resultado = document.getElementById("resultado");
   resultado.innerHTML = "Buscando sugestões...";
 
@@ -200,9 +205,32 @@ async function buscar() {
     const response = await fetch(API_URL);
     const produtos = await response.json();
 
+    const filtrados = produtos.filter(produto => {
+
+      const idadeMin = Number(produto.idade_min);
+      const idadeMax = Number(produto.idade_max);
+      const precoMax = Number(produto.preco_max);
+
+      const generoProduto = (produto.genero || "").toLowerCase().trim();
+      const categoriaProduto = (produto.categoria || "").toLowerCase().trim();
+
+      return (
+        idade >= idadeMin &&
+        idade <= idadeMax &&
+        precoMax <= preco &&
+        (generoProduto === genero || generoProduto === "unissex") &&
+        categoriaProduto === categoria
+      );
+    });
+
+    if (filtrados.length === 0) {
+      resultado.innerHTML = "Nenhuma sugestão encontrada.";
+      return;
+    }
+
     resultado.innerHTML = "";
 
-    produtos.forEach((produto, index) => {
+    filtrados.forEach((produto, index) => {
 
       resultado.innerHTML += `
         <div class="card">
@@ -232,6 +260,7 @@ async function buscar() {
     });
 
   } catch (erro) {
+    console.error(erro);
     resultado.innerHTML = "Erro ao carregar sugestões.";
   }
 
@@ -241,3 +270,4 @@ async function buscar() {
 
 </body>
 </html>
+
