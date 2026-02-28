@@ -46,15 +46,15 @@ async function buscar() {
   const categoria = document.getElementById("categoria").value;
   const preco = parseInt(document.getElementById("preco").value);
 
-  const resposta = await fetch(API_URL);
-  const produtos = await resposta.json();
+  const response = await fetch(API_URL);
+  const produtos = await response.json();
 
   const filtrados = produtos.filter(produto =>
     idade >= Number(produto.idade_min) &&
     idade <= Number(produto.idade_max) &&
     preco >= Number(produto.preco_max) &&
-    (produto.genero === genero || produto.genero === "unissex") &&
-    produto.categoria === categoria
+    produto.categoria === categoria &&
+    (produto.genero === genero || produto.genero === "unissex")
   );
 
   const resultado = document.getElementById("resultado");
