@@ -3,93 +3,72 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Presente Ideal | Descubra o Presente Perfeito</title>
+<title>Presente Ideal</title>
 
 <style>
-
 body {
-  font-family: 'Segoe UI', sans-serif;
+  font-family: Arial, sans-serif;
+  background: #f4f6f9;
   margin: 0;
-  background: #f8f9fc;
-  color: #333;
+  padding: 0;
 }
 
 header {
-  background: linear-gradient(135deg, #1e1e2f, #3a3a5c);
+  background: #111;
   color: white;
-  padding: 60px 20px;
+  padding: 20px;
   text-align: center;
-}
-
-header h1 {
-  margin: 0;
-  font-size: 36px;
-}
-
-header p {
-  margin-top: 10px;
-  font-size: 18px;
-  opacity: 0.9;
 }
 
 .container {
   max-width: 1000px;
   margin: auto;
-  padding: 30px 20px;
+  padding: 20px;
 }
 
 .form-box {
   background: white;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-  margin-top: -40px;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
 }
 
-input, select {
+input, select, button {
   width: 100%;
   padding: 12px;
-  margin-top: 12px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
+  margin-top: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
 }
 
-.main-btn {
-  width: 100%;
-  padding: 14px;
-  margin-top: 15px;
-  border-radius: 8px;
-  border: none;
-  background: #ff4d4d;
+button {
+  background: #111;
   color: white;
-  font-weight: bold;
+  border: none;
   cursor: pointer;
-  font-size: 16px;
+  font-weight: bold;
+  transition: 0.3s;
 }
 
-.main-btn:hover {
-  background: #e63c3c;
+button:hover {
+  background: #333;
 }
 
 .card {
   background: white;
-  margin-top: 25px;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 10px;
   display: flex;
   gap: 20px;
   align-items: center;
-  transition: 0.3s;
-}
-
-.card:hover {
-  transform: translateY(-4px);
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
 }
 
 .card img {
   width: 140px;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 .card-content {
@@ -97,36 +76,25 @@ input, select {
 }
 
 .badge {
-  background: #28a745;
+  background: green;
   color: white;
-  font-size: 12px;
   padding: 4px 8px;
-  border-radius: 5px;
+  font-size: 12px;
+  border-radius: 4px;
   display: inline-block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .buy-btn {
-  padding: 10px 16px;
-  background: #1e1e2f;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+  margin-top: 10px;
+  background: #007bff;
 }
 
 .buy-btn:hover {
-  background: #000;
+  background: #0056b3;
 }
 
-footer {
-  text-align: center;
-  padding: 30px;
-  font-size: 14px;
-  color: #777;
-}
-
-@media(max-width: 768px) {
+@media (max-width: 700px) {
   .card {
     flex-direction: column;
     text-align: center;
@@ -134,10 +102,8 @@ footer {
 
   .card img {
     width: 100%;
-    max-width: 250px;
   }
 }
-
 </style>
 </head>
 
@@ -145,7 +111,7 @@ footer {
 
 <header>
   <h1>🎁 Encontre o Presente Ideal</h1>
-  <p>Descubra sugestões perfeitas baseadas em idade, estilo e orçamento</p>
+  <p>Descubra sugestões perfeitas para qualquer ocasião</p>
 </header>
 
 <div class="container">
@@ -174,7 +140,7 @@ footer {
   <option value="500">Até R$500</option>
 </select>
 
-<button class="main-btn" onclick="buscar()">Encontrar Presente</button>
+<button onclick="buscar()">Buscar Presente</button>
 
 </div>
 
@@ -182,22 +148,24 @@ footer {
 
 </div>
 
-<footer>
-  © 2026 Presente Ideal • Este site pode conter links de afiliado.
-</footer>
-
 <script>
 
 const API_URL = "https://script.google.com/macros/s/AKfycbwV-N476BVfkBkokYt1Brwf8rBKRNYdOK-4AowKEHdfa0lnVLTMIQFQOg1O0K8Ms6dZ/exec";
 
 async function buscar() {
 
-  const idade = parseInt(document.getElementById("idade").value);
-  const genero = document.getElementById("genero").value.toLowerCase().trim();
-  const categoria = document.getElementById("categoria").value.toLowerCase().trim();
-  const preco = parseInt(document.getElementById("preco").value);
+  const idade = Number(document.getElementById("idade").value);
+  const genero = document.getElementById("genero").value;
+  const categoria = document.getElementById("categoria").value;
+  const preco = Number(document.getElementById("preco").value);
 
   const resultado = document.getElementById("resultado");
+
+  if (!idade || !genero || !categoria || !preco) {
+    resultado.innerHTML = "<p>Preencha todos os campos.</p>";
+    return;
+  }
+
   resultado.innerHTML = "Buscando sugestões...";
 
   try {
@@ -205,25 +173,44 @@ async function buscar() {
     const response = await fetch(API_URL);
     const produtos = await response.json();
 
+    const limparTexto = (texto) => {
+      if (!texto) return "";
+      return texto.toString().toLowerCase().trim();
+    };
+
+    const limparNumero = (valor) => {
+      if (!valor) return 0;
+      return Number(
+        valor.toString()
+          .replace("R$", "")
+          .replace(",", ".")
+          .trim()
+      );
+    };
+
     const filtrados = produtos.filter(produto => {
 
-      const idadeMin = Number(produto.idade_min);
-      const idadeMax = Number(produto.idade_max);
-      const precoMax = Number(produto.preco_max);
+      const idadeMin = limparNumero(produto.idade_min);
+      const idadeMax = limparNumero(produto.idade_max);
+      const precoMax = limparNumero(produto.preco_max);
 
-      const generoProduto = (produto.genero || "").toLowerCase().trim();
-      const categoriaProduto = (produto.categoria || "").toLowerCase().trim();
+      const generoProduto = limparTexto(produto.genero);
+      const categoriaProduto = limparTexto(produto.categoria);
+
+      const generoBusca = limparTexto(genero);
+      const categoriaBusca = limparTexto(categoria);
 
       return (
-        
+        idade >= idadeMin &&
+        idade <= idadeMax &&
         precoMax <= preco &&
-        (generoProduto === genero || generoProduto === "unissex") &&
-        categoriaProduto === categoria
+        (generoProduto === generoBusca || generoProduto === "unissex") &&
+        categoriaProduto === categoriaBusca
       );
     });
 
     if (filtrados.length === 0) {
-      resultado.innerHTML = "Nenhuma sugestão encontrada.";
+      resultado.innerHTML = "<p>Nenhuma sugestão encontrada.</p>";
       return;
     }
 
@@ -233,19 +220,19 @@ async function buscar() {
 
       resultado.innerHTML += `
         <div class="card">
-          
-          ${produto.imagem ? `<img src="${produto.imagem}">` : ""}
+
+          ${produto.imagem ? `<img src="${produto.imagem}" alt="${produto.nome}">` : ""}
 
           <div class="card-content">
 
             ${index === 0 ? `<div class="badge">Mais recomendado</div>` : ""}
 
             <h3>${produto.nome}</h3>
-            
-            <p>${produto.descricao}</p>
-            
-            <p><strong>Até R$ ${produto.preco_max}</strong></p>
-            
+
+            <p>${produto.descricao || ""}</p>
+
+            <p><strong>Até R$ ${limparNumero(produto.preco_max)}</strong></p>
+
             ${produto.link ? `
               <a href="${produto.link}" target="_blank">
                 <button class="buy-btn">Comprar Agora</button>
@@ -260,14 +247,11 @@ async function buscar() {
 
   } catch (erro) {
     console.error(erro);
-    resultado.innerHTML = "Erro ao carregar sugestões.";
+    resultado.innerHTML = "<p>Erro ao carregar sugestões.</p>";
   }
-
 }
 
 </script>
 
 </body>
 </html>
-
-
