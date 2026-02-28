@@ -46,15 +46,18 @@ async function buscar() {
   const categoria = document.getElementById("categoria").value;
   const preco = parseInt(document.getElementById("preco").value);
 
+  // 👇 AQUI ESTÁ O FETCH
   const response = await fetch(API_URL);
   const produtos = await response.json();
+
+  console.log("Produtos recebidos:", produtos);
 
   const filtrados = produtos.filter(produto =>
     idade >= Number(produto.idade_min) &&
     idade <= Number(produto.idade_max) &&
-    preco >= Number(produto.preco_max) &&
-    produto.categoria === categoria &&
-    (produto.genero === genero || produto.genero === "unissex")
+    Number(produto.preco_max) <= preco &&
+    produto.categoria.toLowerCase() === categoria.toLowerCase() &&
+    (produto.genero.toLowerCase() === genero.toLowerCase() || produto.genero.toLowerCase() === "unissex")
   );
 
   const resultado = document.getElementById("resultado");
@@ -65,7 +68,7 @@ async function buscar() {
     return;
   }
 
-  filtrados.slice(0,5).forEach((produto, index) => {
+  filtrados.forEach((produto, index) => {
     resultado.innerHTML += `
       <div style="margin-top:20px; border:1px solid #ccc; padding:10px;">
         ${index === 0 ? "<strong>Mais recomendado</strong><br>" : ""}
@@ -85,4 +88,5 @@ async function buscar() {
 
 </body>
 </html>
+
 
