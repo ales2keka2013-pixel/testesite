@@ -41,43 +41,25 @@ const API_URL = "https://script.google.com/macros/s/AKfycbwV-N476BVfkBkokYt1Brwf
 
 async function buscar() {
 
-  const idade = parseInt(document.getElementById("idade").value);
-  const genero = document.getElementById("genero").value;
-  const categoria = document.getElementById("categoria").value;
-  const preco = parseInt(document.getElementById("preco").value);
-
-  // 👇 AQUI ESTÁ O FETCH
   const response = await fetch(API_URL);
   const produtos = await response.json();
 
   console.log("Produtos recebidos:", produtos);
 
-  const filtrados = produtos.filter(produto =>
-    idade >= Number(produto.idade_min) &&
-    idade <= Number(produto.idade_max) &&
-    Number(produto.preco_max) <= preco &&
-    produto.categoria.toLowerCase() === categoria.toLowerCase() &&
-    (produto.genero.toLowerCase() === genero.toLowerCase() || produto.genero.toLowerCase() === "unissex")
-  );
-
   const resultado = document.getElementById("resultado");
   resultado.innerHTML = "";
 
-  if (filtrados.length === 0) {
-    resultado.innerHTML = "Nenhuma sugestão encontrada.";
+  if (!produtos || produtos.length === 0) {
+    resultado.innerHTML = "Nenhum produto vindo da planilha.";
     return;
   }
 
-  filtrados.forEach((produto, index) => {
+  produtos.forEach((produto) => {
     resultado.innerHTML += `
       <div style="margin-top:20px; border:1px solid #ccc; padding:10px;">
-        ${index === 0 ? "<strong>Mais recomendado</strong><br>" : ""}
         <h3>${produto.nome}</h3>
         <p>${produto.descricao}</p>
         <p>Até R$ ${produto.preco_max}</p>
-        <a href="${produto.link}" target="_blank">
-          <button>Comprar</button>
-        </a>
       </div>
     `;
   });
@@ -88,5 +70,6 @@ async function buscar() {
 
 </body>
 </html>
+
 
 
