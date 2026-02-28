@@ -215,8 +215,7 @@ async function buscar() {
       const categoriaProduto = (produto.categoria || "").toLowerCase().trim();
 
       return (
-        idade >= idadeMin &&
-        idade <= idadeMax &&
+        
         precoMax <= preco &&
         (generoProduto === genero || generoProduto === "unissex") &&
         categoriaProduto === categoria
@@ -270,4 +269,5 @@ async function buscar() {
 
 </body>
 </html>
+
 
