@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Busca Presente</title>
 
+<!-- Font Awesome (ícones reais) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 <style>
 body {
   font-family: Arial, sans-serif;
@@ -15,42 +18,39 @@ body {
 header {
   background: #111;
   color: white;
-  padding: 20px;
+  padding: 25px;
   position: relative;
 }
 
-header h1 {
+header h1, header p {
   text-align: center;
   margin: 0;
 }
 
 header p {
-  text-align: center;
-  margin: 5px 0 0 0;
+  margin-top: 5px;
 }
 
-/* Redes sociais */
+/* Redes sociais topo esquerdo */
 .social {
   position: absolute;
   top: 20px;
   left: 20px;
   display: flex;
-  gap: 10px;
+  gap: 15px;
 }
 
 .social a {
   color: white;
-  text-decoration: none;
-  font-size: 14px;
-  background: #333;
-  padding: 6px 10px;
-  border-radius: 5px;
+  font-size: 20px;
+  transition: 0.3s;
 }
 
 .social a:hover {
-  background: #555;
+  transform: scale(1.2);
 }
 
+/* Container */
 .container {
   max-width: 1000px;
   margin: auto;
@@ -127,13 +127,37 @@ button:hover {
   background: #0056b3;
 }
 
-.share-btn {
-  margin-top: 8px;
-  background: #28a745;
+/* Compartilhar */
+.share-buttons {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
 }
 
-.share-btn:hover {
-  background: #1e7e34;
+.share-buttons button {
+  width: auto;
+  padding: 8px 10px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  color: white;
+}
+
+.whatsapp {
+  background: #25D366;
+}
+
+.facebook {
+  background: #1877F2;
+}
+
+.copy {
+  background: #6c757d;
+}
+
+.share-buttons button:hover {
+  opacity: 0.8;
 }
 
 @media (max-width: 700px) {
@@ -153,8 +177,12 @@ button:hover {
 
 <header>
   <div class="social">
-    <a href="https://instagram.com" target="_blank">Instagram</a>
-    <a href="https://facebook.com" target="_blank">Facebook</a>
+    <a href="https://instagram.com" target="_blank">
+      <i class="fab fa-instagram"></i>
+    </a>
+    <a href="https://facebook.com" target="_blank">
+      <i class="fab fa-facebook"></i>
+    </a>
   </div>
 
   <h1>🎁 Busca Presente</h1>
@@ -173,7 +201,7 @@ button:hover {
     <option value="unissex">Unissex</option>
   </select>
 
-  <select id="categoria">    
+  <select id="categoria">
     <option value="">Categoria</option>
     <option value="brinquedos">Brinquedos</option>
     <option value="tecnologia">Tecnologia</option>
@@ -198,7 +226,6 @@ button:hover {
 </div>
 
 <script>
-
 const API_URL = "https://script.google.com/macros/s/AKfycbwwxs-lSOCnQ9OKUIC42ZdC87_pGDKYYHPPgnNlt0fLyR-ziQ4bORLJ-3YjY-es5SO2/exec";
 
 async function buscar() {
@@ -222,109 +249,92 @@ async function buscar() {
     const response = await fetch(API_URL);
     const produtos = await response.json();
 
-    const limparTexto = (texto) => {
-      if (!texto) return "";
-      return texto.toString().toLowerCase().trim();
-    };
-
-    const limparNumero = (valor) => {
-      if (!valor) return 0;
-      return Number(valor.toString().replace("R$", "").replace(",", ".").trim());
-    };
+    const limparTexto = t => (t || "").toString().toLowerCase().trim();
+    const limparNumero = v => Number((v || 0).toString().replace("R$", "").replace(",", ".").trim());
 
     const generoBusca = limparTexto(genero);
     const categoriaBusca = limparTexto(categoria);
 
-    const filtrados = produtos
-      .map(produto => {
+    const filtrados = produtos.filter(produto => {
 
-        const idadeMin = limparNumero(produto.idade_min);
-        const idadeMax = limparNumero(produto.idade_max);
-        const precoMax = limparNumero(produto.preco_max);
+      const idadeMin = limparNumero(produto.idade_min);
+      const idadeMax = limparNumero(produto.idade_max);
+      const precoMax = limparNumero(produto.preco_max);
 
-        const generoProduto = limparTexto(produto.genero);
-        const categoriaProduto = limparTexto(produto.categoria);
+      const generoProduto = limparTexto(produto.genero);
+      const categoriaProduto = limparTexto(produto.categoria);
 
-        const dentroIdade = idade >= idadeMin && idade <= idadeMax;
-        const dentroPreco = precoMax <= preco;
-        const mesmaCategoria = categoriaProduto === categoriaBusca;
+      const generoValido =
+        generoBusca === "unissex"
+          ? true
+          : generoProduto === generoBusca || generoProduto === "unissex";
 
-        let generoValido = false;
-        let prioridade = 0;
+      return (
+        idade >= idadeMin &&
+        idade <= idadeMax &&
+        precoMax <= preco &&
+        generoValido &&
+        categoriaProduto === categoriaBusca
+      );
+    });
 
-        if (generoBusca === "unissex") {
-          generoValido = true;
-          prioridade = 1;
-        } else {
-          if (generoProduto === generoBusca) {
-            generoValido = true;
-            prioridade = 2;
-          } else if (generoProduto === "unissex") {
-            generoValido = true;
-            prioridade = 1;
-          }
-        }
-
-        if (dentroIdade && dentroPreco && mesmaCategoria && generoValido) {
-          return { ...produto, prioridade };
-        }
-
-        return null;
-
-      })
-      .filter(Boolean)
-      .sort((a, b) => b.prioridade - a.prioridade);
-
-    if (filtrados.length === 0) {
+    if (!filtrados.length) {
       resultado.innerHTML = "<p>Nenhuma sugestão encontrada.</p>";
       return;
     }
 
     resultado.innerHTML = "";
 
-    filtrados.slice(0,5).forEach((produto, index) => {
+    filtrados.slice(0,5).forEach(produto => {
       resultado.innerHTML += `
         <div class="card">
           ${produto.imagem ? `<img src="${produto.imagem}" alt="${produto.nome}">` : ""}
           <div class="card-content">
-            ${index === 0 ? `<div class="badge">Mais recomendado</div>` : ""}
             <h3>${produto.nome}</h3>
             <p>${produto.descricao || ""}</p>
             <p><strong>Até R$ ${produto.preco_max}</strong></p>
-            ${produto.link ? `
-              <a href="${produto.link}" target="_blank">
-                <button class="buy-btn">Comprar Agora</button>
-              </a>
-            ` : ""}
-            <button class="share-btn" onclick="compartilhar('${produto.nome}', '${produto.link}')">
-              Compartilhar
-            </button>
+
+            <a href="${produto.link}" target="_blank">
+              <button class="buy-btn">Comprar Agora</button>
+            </a>
+
+            <div class="share-buttons">
+              <button class="whatsapp" onclick="compartilharWhats('${produto.nome}','${produto.link}')">
+                <i class="fab fa-whatsapp"></i>
+              </button>
+
+              <button class="facebook" onclick="compartilharFacebook('${produto.link}')">
+                <i class="fab fa-facebook-f"></i>
+              </button>
+
+              <button class="copy" onclick="copiarLink('${produto.link}')">
+                <i class="fas fa-link"></i>
+              </button>
+            </div>
           </div>
         </div>
       `;
     });
 
   } catch (erro) {
-    console.error(erro);
     resultado.innerHTML = "<p>Erro ao carregar sugestões.</p>";
   }
 }
 
-function compartilhar(nome, link) {
-  const texto = `Olha esse presente que encontrei: ${nome} - ${link}`;
-
-  if (navigator.share) {
-    navigator.share({
-      title: nome,
-      text: texto,
-      url: link
-    });
-  } else {
-    navigator.clipboard.writeText(texto);
-    alert("Link copiado para compartilhar!");
-  }
+function compartilharWhats(nome, link) {
+  const texto = encodeURIComponent(`Olha esse presente: ${nome} ${link}`);
+  window.open(`https://wa.me/?text=${texto}`, "_blank");
 }
 
+function compartilharFacebook(link) {
+  const url = encodeURIComponent(link);
+  window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank");
+}
+
+function copiarLink(link) {
+  navigator.clipboard.writeText(link);
+  alert("Link copiado!");
+}
 </script>
 
 </body>
