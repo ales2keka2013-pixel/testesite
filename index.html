@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Busca Presente</title>
+<title>Presente Ideal</title>
 
 <style>
 body {
@@ -108,7 +108,7 @@ button:hover {
 <body>
 
 <header>
-  <h1>🎁 Busca Presente</h1>
+  <h1>🎁 Encontre o Presente Ideal</h1>
   <p>Descubra sugestões perfeitas para qualquer ocasião</p>
 </header>
 
@@ -122,15 +122,15 @@ button:hover {
     <option value="masculino">Masculino</option>
     <option value="feminino">Feminino</option>
     <option value="unissex">Unissex</option>
-    <option value="unissex">Casamento</option>
   </select>
 
-  <select id="categoria">    
+  <select id="categoria">
     <option value="">Categoria</option>
-    <option value="brinquedos">brinquedos</option>
     <option value="tecnologia">Tecnologia</option>
     <option value="livros">Livros</option>
     <option value="esportes">Esportes</option>
+    <option value="moda">Moda</option>
+    <option value="beleza">Beleza</option>
   </select>
 
   <select id="preco">
@@ -138,6 +138,7 @@ button:hover {
     <option value="100">Até R$100</option>
     <option value="200">Até R$200</option>
     <option value="500">Até R$500</option>
+    <option value="1000">Até R$1000</option>
   </select>
 
   <button onclick="buscar()">Buscar Presente</button>
@@ -149,7 +150,7 @@ button:hover {
 
 <script>
 
-const API_URL = "https://script.google.com/macros/s/AKfycbwwxs-lSOCnQ9OKUIC42ZdC87_pGDKYYHPPgnNlt0fLyR-ziQ4bORLJ-3YjY-es5SO2/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwV-N476BVfkBkokYt1Brwf8rBKRNYdOK-4AowKEHdfa0lnVLTMIQFQOg1O0K8Ms6dZ/exec";
 
 async function buscar() {
 
@@ -199,11 +200,17 @@ async function buscar() {
       const generoProduto = limparTexto(produto.genero);
       const categoriaProduto = limparTexto(produto.categoria);
 
+      // 🔥 LÓGICA INTELIGENTE DE GÊNERO
+      const generoValido =
+        generoBusca === "unissex"
+          ? true
+          : generoProduto === generoBusca || generoProduto === "unissex";
+
       return (
         idade >= idadeMin &&
         idade <= idadeMax &&
         precoMax <= preco &&
-        (generoProduto === generoBusca || generoProduto === "unissex") &&
+        generoValido &&
         categoriaProduto === categoriaBusca
       );
     });
@@ -244,8 +251,3 @@ async function buscar() {
 
 </body>
 </html>
-
-
-
-
-
