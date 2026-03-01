@@ -15,8 +15,40 @@ body {
 header {
   background: #111;
   color: white;
+  padding: 20px;
+  position: relative;
+}
+
+header h1 {
   text-align: center;
-  padding: 25px;
+  margin: 0;
+}
+
+header p {
+  text-align: center;
+  margin: 5px 0 0 0;
+}
+
+/* Redes sociais */
+.social {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.social a {
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+  background: #333;
+  padding: 6px 10px;
+  border-radius: 5px;
+}
+
+.social a:hover {
+  background: #555;
 }
 
 .container {
@@ -27,17 +59,20 @@ header {
 
 .form-box {
   background: white;
-  padding: 20px;
+  padding: 25px;
   border-radius: 10px;
   box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 input, select, button {
   width: 100%;
   padding: 12px;
-  margin-top: 10px;
   border-radius: 6px;
   border: 1px solid #ccc;
+  box-sizing: border-box;
 }
 
 button {
@@ -92,6 +127,15 @@ button:hover {
   background: #0056b3;
 }
 
+.share-btn {
+  margin-top: 8px;
+  background: #28a745;
+}
+
+.share-btn:hover {
+  background: #1e7e34;
+}
+
 @media (max-width: 700px) {
   .card {
     flex-direction: column;
@@ -108,6 +152,11 @@ button:hover {
 <body>
 
 <header>
+  <div class="social">
+    <a href="https://instagram.com" target="_blank">Instagram</a>
+    <a href="https://facebook.com" target="_blank">Facebook</a>
+  </div>
+
   <h1>🎁 Busca Presente</h1>
   <p>Descubra sugestões perfeitas para qualquer ocasião</p>
 </header>
@@ -130,8 +179,8 @@ button:hover {
     <option value="tecnologia">Tecnologia</option>
     <option value="livros">Livros</option>
     <option value="esportes">Esportes</option>
-    <option value="Beleza e cuidado pessoal">Beleza e cuidado pessoal</option>
-    <option value="Ferramentas">Ferramentas</option>
+    <option value="beleza e cuidado pessoal">Beleza e Cuidado Pessoal</option>
+    <option value="ferramentas">Ferramentas</option>
   </select>
 
   <select id="preco">
@@ -180,12 +229,7 @@ async function buscar() {
 
     const limparNumero = (valor) => {
       if (!valor) return 0;
-      return Number(
-        valor.toString()
-          .replace("R$", "")
-          .replace(",", ".")
-          .trim()
-      );
+      return Number(valor.toString().replace("R$", "").replace(",", ".").trim());
     };
 
     const generoBusca = limparTexto(genero);
@@ -214,10 +258,10 @@ async function buscar() {
         } else {
           if (generoProduto === generoBusca) {
             generoValido = true;
-            prioridade = 2; // específico primeiro
+            prioridade = 2;
           } else if (generoProduto === "unissex") {
             generoValido = true;
-            prioridade = 1; // unissex depois
+            prioridade = 1;
           }
         }
 
@@ -252,6 +296,9 @@ async function buscar() {
                 <button class="buy-btn">Comprar Agora</button>
               </a>
             ` : ""}
+            <button class="share-btn" onclick="compartilhar('${produto.nome}', '${produto.link}')">
+              Compartilhar
+            </button>
           </div>
         </div>
       `;
@@ -263,10 +310,22 @@ async function buscar() {
   }
 }
 
+function compartilhar(nome, link) {
+  const texto = `Olha esse presente que encontrei: ${nome} - ${link}`;
+
+  if (navigator.share) {
+    navigator.share({
+      title: nome,
+      text: texto,
+      url: link
+    });
+  } else {
+    navigator.clipboard.writeText(texto);
+    alert("Link copiado para compartilhar!");
+  }
+}
+
 </script>
 
 </body>
 </html>
-
-
-
