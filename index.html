@@ -2,10 +2,12 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- VIEWPORT CORRIGIDA (REMOVE ZOOM AUTOMÁTICO) -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
 <title>Busca Presente</title>
 
-<!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
@@ -13,29 +15,30 @@ body {
   font-family: Arial, sans-serif;
   background: #f4f6f9;
   margin: 0;
+  padding-top: 90px;
 }
 
+/* HEADER FIXO */
 header {
   background: #111;
   color: white;
-  padding: 25px;
-  position: relative;
+  padding: 15px 30px;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-header h1, header p {
+.header-content {
   text-align: center;
-  margin: 0;
 }
 
-header p {
-  margin-top: 5px;
-}
-
-/* Redes sociais - lado direito */
 .social {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  right: 30px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -48,7 +51,7 @@ header p {
 
 .social a {
   color: white;
-  font-size: 20px;
+  font-size: 18px;
   transition: 0.3s;
 }
 
@@ -56,13 +59,14 @@ header p {
   transform: scale(1.2);
 }
 
-/* Container */
+/* CONTAINER */
 .container {
   max-width: 1000px;
   margin: auto;
   padding: 20px;
 }
 
+/* FORMULÁRIO */
 .form-box {
   background: white;
   padding: 25px;
@@ -73,12 +77,14 @@ header p {
   gap: 15px;
 }
 
+/* INPUTS SEM ZOOM MOBILE */
 input, select, button {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   border-radius: 6px;
   border: 1px solid #ccc;
   box-sizing: border-box;
+  font-size: 16px; /* ESSENCIAL para evitar zoom */
 }
 
 button {
@@ -94,6 +100,7 @@ button:hover {
   background: #333;
 }
 
+/* CARDS */
 .card {
   background: white;
   margin-top: 20px;
@@ -103,6 +110,12 @@ button:hover {
   gap: 20px;
   align-items: center;
   box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
 }
 
 .card img {
@@ -114,16 +127,6 @@ button:hover {
   flex: 1;
 }
 
-.badge {
-  background: green;
-  color: white;
-  padding: 4px 8px;
-  font-size: 12px;
-  border-radius: 4px;
-  display: inline-block;
-  margin-bottom: 6px;
-}
-
 .buy-btn {
   margin-top: 10px;
   background: #007bff;
@@ -133,12 +136,9 @@ button:hover {
   background: #0056b3;
 }
 
-/* Compartilhar */
+/* COMPARTILHAR */
 .share-buttons {
   margin-top: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
 }
 
 .share-buttons span {
@@ -146,15 +146,14 @@ button:hover {
   font-size: 14px;
 }
 
-.share-buttons .buttons-row {
+.buttons-row {
+  margin-top: 6px;
   display: flex;
   gap: 8px;
 }
 
 .share-buttons button {
-  width: auto;
   padding: 8px 12px;
-  font-size: 14px;
   border-radius: 6px;
   border: none;
   cursor: pointer;
@@ -167,6 +166,35 @@ button:hover {
 
 .share-buttons button:hover {
   opacity: 0.85;
+}
+
+/* WHATSAPP FLUTUANTE */
+.whatsapp-float {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #25D366;
+  color: white;
+  font-size: 24px;
+  padding: 15px;
+  border-radius: 50%;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  z-index: 1000;
+  transition: 0.3s;
+}
+
+.whatsapp-float:hover {
+  transform: scale(1.1);
+}
+
+/* RODAPÉ */
+footer {
+  margin-top: 50px;
+  background: #111;
+  color: white;
+  text-align: center;
+  padding: 20px;
+  font-size: 14px;
 }
 
 @media (max-width: 700px) {
@@ -185,6 +213,11 @@ button:hover {
 <body>
 
 <header>
+  <div class="header-content">
+    <h2>🎁 Busca Presente</h2>
+    <small>Descubra sugestões perfeitas</small>
+  </div>
+
   <div class="social">
     <span>Siga-nos:</span>
     <a href="https://instagram.com" target="_blank">
@@ -194,9 +227,6 @@ button:hover {
       <i class="fab fa-facebook"></i>
     </a>
   </div>
-
-  <h1>🎁 Busca Presente</h1>
-  <p>Descubra sugestões perfeitas para qualquer ocasião</p>
 </header>
 
 <div class="container">
@@ -226,7 +256,6 @@ button:hover {
     <option value="100">Até R$100</option>
     <option value="200">Até R$200</option>
     <option value="500">Até R$500</option>
-    <option value="1000">Até R$1000</option>
   </select>
 
   <button onclick="buscar()">Buscar Presente</button>
@@ -236,16 +265,22 @@ button:hover {
 
 </div>
 
+<a href="https://wa.me/" target="_blank" class="whatsapp-float">
+  <i class="fab fa-whatsapp"></i>
+</a>
+
+<footer>
+  © 2026 Busca Presente | Todos os direitos reservados
+</footer>
+
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbwwxs-lSOCnQ9OKUIC42ZdC87_pGDKYYHPPgnNlt0fLyR-ziQ4bORLJ-3YjY-es5SO2/exec";
 
 async function buscar() {
-
   const idade = Number(document.getElementById("idade").value);
   const genero = document.getElementById("genero").value;
   const categoria = document.getElementById("categoria").value;
   const preco = Number(document.getElementById("preco").value);
-
   const resultado = document.getElementById("resultado");
 
   if (!idade || !genero || !categoria || !preco) {
@@ -256,7 +291,6 @@ async function buscar() {
   resultado.innerHTML = "Buscando sugestões...";
 
   try {
-
     const response = await fetch(API_URL);
     const produtos = await response.json();
 
@@ -267,7 +301,6 @@ async function buscar() {
     const categoriaBusca = limparTexto(categoria);
 
     const filtrados = produtos.filter(produto => {
-
       const idadeMin = limparNumero(produto.idade_min);
       const idadeMax = limparNumero(produto.idade_max);
       const precoMax = limparNumero(produto.preco_max);
@@ -312,46 +345,21 @@ async function buscar() {
             <div class="share-buttons">
               <span>Compartilhar:</span>
               <div class="buttons-row">
-                <button class="whatsapp" onclick="compartilharWhats('${produto.nome}','${produto.link}')">
-                  <i class="fab fa-whatsapp"></i>
-                </button>
-
-                <button class="facebook" onclick="compartilharFacebook('${produto.link}')">
-                  <i class="fab fa-facebook-f"></i>
-                </button>
-
-                <button class="copy" onclick="copiarLink('${produto.link}')">
-                  <i class="fas fa-link"></i>
-                </button>
+                <button class="whatsapp"><i class="fab fa-whatsapp"></i></button>
+                <button class="facebook"><i class="fab fa-facebook-f"></i></button>
+                <button class="copy"><i class="fas fa-link"></i></button>
               </div>
             </div>
-
           </div>
         </div>
       `;
     });
 
-  } catch (erro) {
+  } catch {
     resultado.innerHTML = "<p>Erro ao carregar sugestões.</p>";
   }
-}
-
-function compartilharWhats(nome, link) {
-  const texto = encodeURIComponent(`Olha esse presente: ${nome} ${link}`);
-  window.open(`https://wa.me/?text=${texto}`, "_blank");
-}
-
-function compartilharFacebook(link) {
-  const url = encodeURIComponent(link);
-  window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank");
-}
-
-function copiarLink(link) {
-  navigator.clipboard.writeText(link);
-  alert("Link copiado!");
 }
 </script>
 
 </body>
 </html>
-
