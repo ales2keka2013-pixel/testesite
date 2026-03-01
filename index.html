@@ -122,12 +122,11 @@ button:hover {
     <option value="masculino">Masculino</option>
     <option value="feminino">Feminino</option>
     <option value="unissex">Unissex</option>
-    <option value="unissex">Casamento</option>
   </select>
 
   <select id="categoria">    
     <option value="">Categoria</option>
-    <option value="brinquedos">brinquedos</option>
+    <option value="brinquedos">Brinquedos</option>
     <option value="tecnologia">Tecnologia</option>
     <option value="livros">Livros</option>
     <option value="esportes">Esportes</option>
@@ -190,23 +189,45 @@ async function buscar() {
     const generoBusca = limparTexto(genero);
     const categoriaBusca = limparTexto(categoria);
 
-    const filtrados = produtos.filter(produto => {
+    const filtrados = produtos
+      .map(produto => {
 
-      const idadeMin = limparNumero(produto.idade_min);
-      const idadeMax = limparNumero(produto.idade_max);
-      const precoMax = limparNumero(produto.preco_max);
+        const idadeMin = limparNumero(produto.idade_min);
+        const idadeMax = limparNumero(produto.idade_max);
+        const precoMax = limparNumero(produto.preco_max);
 
-      const generoProduto = limparTexto(produto.genero);
-      const categoriaProduto = limparTexto(produto.categoria);
+        const generoProduto = limparTexto(produto.genero);
+        const categoriaProduto = limparTexto(produto.categoria);
 
-      return (
-        idade >= idadeMin &&
-        idade <= idadeMax &&
-        precoMax <= preco &&
-        (generoProduto === generoBusca || generoProduto === "unissex") &&
-        categoriaProduto === categoriaBusca
-      );
-    });
+        const dentroIdade = idade >= idadeMin && idade <= idadeMax;
+        const dentroPreco = precoMax <= preco;
+        const mesmaCategoria = categoriaProduto === categoriaBusca;
+
+        let generoValido = false;
+        let prioridade = 0;
+
+        if (generoBusca === "unissex") {
+          generoValido = true;
+          prioridade = 1;
+        } else {
+          if (generoProduto === generoBusca) {
+            generoValido = true;
+            prioridade = 2; // específico primeiro
+          } else if (generoProduto === "unissex") {
+            generoValido = true;
+            prioridade = 1; // unissex depois
+          }
+        }
+
+        if (dentroIdade && dentroPreco && mesmaCategoria && generoValido) {
+          return { ...produto, prioridade };
+        }
+
+        return null;
+
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.prioridade - a.prioridade);
 
     if (filtrados.length === 0) {
       resultado.innerHTML = "<p>Nenhuma sugestão encontrada.</p>";
@@ -215,7 +236,7 @@ async function buscar() {
 
     resultado.innerHTML = "";
 
-    filtrados.forEach((produto, index) => {
+    filtrados.slice(0,5).forEach((produto, index) => {
       resultado.innerHTML += `
         <div class="card">
           ${produto.imagem ? `<img src="${produto.imagem}" alt="${produto.nome}">` : ""}
@@ -244,7 +265,3 @@ async function buscar() {
 
 </body>
 </html>
-
-
-
-
