@@ -83,7 +83,7 @@ input, select, button {
   border-radius: 6px;
   border: 1px solid #ccc;
   box-sizing: border-box;
-  font-size: 16px; /* ESSENCIAL para evitar zoom */
+  font-size: 16px; /* evita zoom no mobile */
 }
 
 button {
@@ -112,6 +112,8 @@ button:hover {
 
 .card img {
   width: 140px;
+  height: 140px;
+  object-fit: contain;
   border-radius: 8px;
 }
 
@@ -174,6 +176,7 @@ button:hover {
   opacity: 0.85;
 }
 
+/* MOBILE */
 @media (max-width: 700px) {
   .card {
     flex-direction: column;
@@ -181,7 +184,12 @@ button:hover {
   }
 
   .card img {
-    width: 100%;
+    width: 180px;
+    height: 180px;
+    max-width: 80%;
+    object-fit: contain;
+    margin: 0 auto;
+    display: block;
   }
 }
 </style>
