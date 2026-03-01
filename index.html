@@ -3,50 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Presente Ideal</title>
+<title>Presente Ideal 🎁</title>
 
 <style>
 body {
   font-family: Arial, sans-serif;
-  background: #f4f6f9;
-  margin: 0;
-}
-
-header {
-  background: #111;
-  color: white;
-  text-align: center;
-  padding: 25px;
-}
-
-.container {
-  max-width: 1000px;
+  background: #f4f4f4;
+  max-width: 900px;
   margin: auto;
   padding: 20px;
+}
+
+h2 {
+  text-align: center;
 }
 
 .form-box {
   background: white;
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
 }
 
 input, select, button {
   width: 100%;
-  padding: 12px;
+  padding: 10px;
   margin-top: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
 }
 
 button {
-  background: #111;
+  background: #000;
   color: white;
   border: none;
   cursor: pointer;
-  font-weight: bold;
-  transition: 0.3s;
+  border-radius: 6px;
 }
 
 button:hover {
@@ -59,18 +48,13 @@ button:hover {
   padding: 15px;
   border-radius: 10px;
   display: flex;
-  gap: 20px;
+  gap: 15px;
   align-items: center;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
 }
 
 .card img {
-  width: 140px;
+  width: 120px;
   border-radius: 8px;
-}
-
-.card-content {
-  flex: 1;
 }
 
 .badge {
@@ -79,129 +63,83 @@ button:hover {
   padding: 4px 8px;
   font-size: 12px;
   border-radius: 4px;
-  display: inline-block;
-  margin-bottom: 6px;
-}
-
-.buy-btn {
-  margin-top: 10px;
-  background: #007bff;
-}
-
-.buy-btn:hover {
-  background: #0056b3;
-}
-
-@media (max-width: 700px) {
-  .card {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .card img {
-    width: 100%;
-  }
 }
 </style>
 </head>
 
 <body>
 
-<header>
-  <h1>🎁 Encontre o Presente Ideal</h1>
-  <p>Descubra sugestões perfeitas para qualquer ocasião</p>
-</header>
-
-<div class="container">
+<h2>Descubra o Presente Ideal 🎁</h2>
 
 <div class="form-box">
-  <input type="number" id="idade" placeholder="Idade">
 
-  <select id="genero">
-    <option value="">Gênero</option>
-    <option value="masculino">Masculino</option>
-    <option value="feminino">Feminino</option>
-    <option value="unissex">Unissex</option>
-  </select>
+<input type="number" id="idade" placeholder="Idade">
 
-  <select id="categoria">
-    <option value="">Categoria</option>
-    <option value="brinquedos">brinquedos</option>
-    <option value="tecnologia">Tecnologia</option>
-    <option value="livros">Livros</option>
-    <option value="esportes">Esportes</option>
-    <option value="moda">Moda</option>
-    <option value="beleza">Beleza</option>
-  </select>
+<select id="genero">
+  <option value="">Gênero</option>
+  <option value="masculino">Masculino</option>
+  <option value="feminino">Feminino</option>
+  <option value="unissex">Unissex</option>
+</select>
 
-  <select id="preco">
-    <option value="">Faixa de preço</option>
-    <option value="100">Até R$100</option>
-    <option value="200">Até R$200</option>
-    <option value="500">Até R$500</option>
-    <option value="1000">Até R$1000</option>
-  </select>
+<select id="categoria">
+  <option value="">Categoria</option>
+  <option value="tecnologia">Tecnologia</option>
+  <option value="livros">Livros</option>
+  <option value="esportes">Esportes</option>
+  <option value="brinquedos">Brinquedos</option>
+</select>
 
-  <button onclick="buscar()">Buscar Presente</button>
+<select id="preco">
+  <option value="100">Até R$100</option>
+  <option value="200">Até R$200</option>
+  <option value="500">Até R$500</option>
+</select>
+
+<button onclick="buscar()">Encontrar Presente</button>
+
 </div>
 
 <div id="resultado"></div>
 
-</div>
-
 <script>
 
-const API_URL = "https://script.google.com/macros/s/AKfycbwV-N476BVfkBkokYt1Brwf8rBKRNYdOK-4AowKEHdfa0lnVLTMIQFQOg1O0K8Ms6dZ/exec";
+const URL_API = "https://script.google.com/macros/s/AKfycbwV-N476BVfkBkokYt1Brwf8rBKRNYdOK-4AowKEHdfa0lnVLTMIQFQOg1O0K8Ms6dZ/exec";
 
 async function buscar() {
 
-  const idade = Number(document.getElementById("idade").value);
+  const idade = parseInt(document.getElementById("idade").value);
   const genero = document.getElementById("genero").value;
   const categoria = document.getElementById("categoria").value;
-  const preco = Number(document.getElementById("preco").value);
+  const preco = parseInt(document.getElementById("preco").value);
 
   const resultado = document.getElementById("resultado");
-
-  if (!idade || !genero || !categoria || !preco) {
-    resultado.innerHTML = "<p>Preencha todos os campos.</p>";
-    return;
-  }
-
-  resultado.innerHTML = "Buscando sugestões...";
+  resultado.innerHTML = "Carregando...";
 
   try {
 
-    const response = await fetch(API_URL);
+    const response = await fetch(URL_API);
     const produtos = await response.json();
-
-    const limparTexto = (texto) => {
-      if (!texto) return "";
-      return texto.toString().toLowerCase().trim();
-    };
-
-    const limparNumero = (valor) => {
-      if (!valor) return 0;
-      return Number(
-        valor.toString()
-          .replace("R$", "")
-          .replace(",", ".")
-          .trim()
-      );
-    };
-
-    const generoBusca = limparTexto(genero);
-    const categoriaBusca = limparTexto(categoria);
 
     const filtrados = produtos.filter(produto => {
 
-      const idadeMin = limparNumero(produto.idade_min);
-      const idadeMax = limparNumero(produto.idade_max);
-      const precoMax = limparNumero(produto.preco_max);
+      const idadeMin = Number(produto.idade_min || 0);
+      const idadeMax = Number(produto.idade_max || 0);
+      const precoMax = Number(produto.preco_max || 0);
 
-      const generoProduto = limparTexto(produto.genero);
-      const categoriaProduto = limparTexto(produto.categoria);
+      const generoProduto = (produto.genero || "")
+        .toString()
+        .toLowerCase()
+        .trim();
 
-      // 🔥 LÓGICA INTELIGENTE DE GÊNERO
+      const categoriaProduto = (produto.categoria || "")
+        .toString()
+        .toLowerCase()
+        .trim();
+
+      const generoBusca = genero.toLowerCase().trim();
+      const categoriaBusca = categoria.toLowerCase().trim();
+
       const generoValido =
         generoBusca === "unissex"
           ? true
@@ -216,35 +154,34 @@ async function buscar() {
       );
     });
 
+    resultado.innerHTML = "";
+
     if (filtrados.length === 0) {
       resultado.innerHTML = "<p>Nenhuma sugestão encontrada.</p>";
       return;
     }
 
-    resultado.innerHTML = "";
+    filtrados.slice(0,5).forEach((produto, index) => {
 
-    filtrados.forEach((produto, index) => {
       resultado.innerHTML += `
         <div class="card">
-          ${produto.imagem ? `<img src="${produto.imagem}" alt="${produto.nome}">` : ""}
-          <div class="card-content">
-            ${index === 0 ? `<div class="badge">Mais recomendado</div>` : ""}
+          <img src="${produto.imagem}" alt="${produto.nome}">
+          <div>
+            ${index === 0 ? '<div class="badge">Mais recomendado</div>' : ''}
             <h3>${produto.nome}</h3>
-            <p>${produto.descricao || ""}</p>
+            <p>${produto.descricao}</p>
             <p><strong>Até R$ ${produto.preco_max}</strong></p>
-            ${produto.link ? `
-              <a href="${produto.link}" target="_blank">
-                <button class="buy-btn">Comprar Agora</button>
-              </a>
-            ` : ""}
+            <a href="${produto.link}" target="_blank">
+              <button>Comprar Agora</button>
+            </a>
           </div>
         </div>
       `;
     });
 
   } catch (erro) {
-    console.error(erro);
     resultado.innerHTML = "<p>Erro ao carregar sugestões.</p>";
+    console.error(erro);
   }
 }
 
@@ -252,4 +189,3 @@ async function buscar() {
 
 </body>
 </html>
-
